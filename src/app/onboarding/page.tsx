@@ -13,6 +13,7 @@ const CAREER_PATHS = [
   { id: 'digital_marketing',       label: 'Digital Marketing & Growth',             icon: 'DM', desc: 'Campaign analysis, channel optimisation, performance reporting',         color: '#854D0E', bg: '#FEF9C3' },
   { id: 'financial_analysis',      label: 'Financial Analysis',                     icon: 'FA', desc: 'Variance analysis, modelling, FP&A, high-stakes decisions',             color: '#991B1B', bg: '#FEE2E2' },
   { id: 'reliability_engineering', label: 'Reliability & Maintenance Engineering',  icon: 'RE', desc: 'OEE optimisation, MTBF analysis, root cause analysis, asset management', color: '#0F766E', bg: '#CCFBF1' },
+  { id: 'reliability_engineering', label: 'Reliability & Maintenance Engineering',  icon: 'RE', desc: 'OEE optimisation, MTBF analysis, root cause analysis, asset management', color: '#0F766E', bg: '#CCFBF1' },
 ]
 
 const SENIORITY_LEVELS = [
