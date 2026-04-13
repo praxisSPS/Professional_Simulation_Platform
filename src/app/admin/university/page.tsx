@@ -14,8 +14,8 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { CAREER_PATH_DISPLAY, LEVEL_TITLES } from '@/lib/simulation-scripts'
-import { LEVEL_TITLES as LT } from '@/lib/kpi-engine'
+import { CAREER_PATH_DISPLAY } from '@/lib/simulation-scripts'
+import { LEVEL_TITLES } from '@/lib/kpi-engine'
 
 interface StudentRow {
   id: string
@@ -270,7 +270,7 @@ export default function UniversityAdminPage() {
                       color: s.current_level >= 3 ? '#166534' : s.current_level >= 2 ? '#1E40AF' : '#64748B',
                       fontWeight: 500,
                     }}>
-                      L{s.current_level} · {LT[s.current_level]}
+                      L{s.current_level} · {LEVEL_TITLES[s.current_level]}
                     </span>
                   </div>
                   <div style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{s.experience_points}</div>
@@ -310,7 +310,7 @@ export default function UniversityAdminPage() {
                 return (
                   <div key={level} style={{ marginBottom: 12 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#374151', marginBottom: 4 }}>
-                      <span>Level {level} — {LT[parseInt(level)]}</span>
+                      <span>Level {level} — {LEVEL_TITLES[parseInt(level)]}</span>
                       <span style={{ color: '#64748B' }}>{count} ({pct}%)</span>
                     </div>
                     <div style={{ height: 6, background: '#F1F5F9', borderRadius: 3 }}>
