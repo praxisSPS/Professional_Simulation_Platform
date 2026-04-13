@@ -1,99 +1,233 @@
 'use client'
 
-/**
- * SimTaskPanel — renders the active simulation task
- * Shows the scenario, AI coworker message, and decision options or free-text input.
- * Connects to the SimulationEngine to resolve decisions.
- */
-
 import { useState } from 'react'
-import { SimTask, DecisionOption } from '@/lib/simulation-scripts'
-import { simulationEngine } from '@/lib/simulation-engine'
+import { useRouter } from 'next/navigation'
 
-const PERSONA_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  boss:   { bg: '#EFF6FF', text: '#1E40AF', border: '#BFDBFE' },
-  marcus: { bg: '#F0FDF4', text: '#166534', border: '#BBF7D0' },
-  sarah:  { bg: '#FFF7ED', text: '#9A3412', border: '#FED7AA' },
-  client: { bg: '#F5F3FF', text: '#5B21B6', border: '#DDD6FE' },
-  hr:     { bg: '#F0FDFA', text: '#065F46', border: '#A7F3D0' },
+interface TaskOption {
+  id: string
+  text: string
+  quality?: string
 }
 
-const QUALITY_STYLES: Record<string, { border: string; bg: string; label: string; labelBg: string; labelText: string }> = {
-  good:   { border: '#86EFAC', bg: '#F0FDF4', label: 'Best approach', labelBg: '#DCFCE7', labelText: '#166534' },
-  medium: { border: '#FCD34D', bg: '#FFFBEB', label: 'Acceptable',    labelBg: '#FEF9C3', labelText: '#854D0E' },
-  bad:    { border: '#FCA5A5', bg: '#FFF5F5', label: 'Poor choice',   labelBg: '#FEE2E2', labelText: '#991B1B' },
+interface Task {
+  id: string
+  title: string
+  type: string
+  description: string
+  urgency: string
+  options?: TaskOption[]
+  xp_reward?: number
+  due_at?: string
+  session_id?: string
 }
 
-interface SimTaskPanelProps {
-  task: SimTask
-  onComplete: () => void
+interface Props {
+  task: Task
+  sessionId: string
+  onComplete: (result: any) => void
 }
 
-export default function SimTaskPanel({ task, onComplete }: SimTaskPanelProps) {
-  const [chosen, setChosen] = useState<string | null>(null)
-  const [revealed, setRevealed] = useState(false)
+const URGENCY_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+  urgent:  { label: 'Urgent',  color: '#F43F5E', bg: 'rgba(244,63,94,0.08)' },
+  high:    { label: 'High',    color: '#F59E0B', bg: 'rgba(245,158,11,0.08)' },
+  normal:  { label: 'Normal',  color: '#00C2A8', bg: 'rgba(0,194,168,0.08)' },
+}
+
+const TYPE_CONFIG: Record<string, { label: string; icon: string }> = {
+  decision:       { label: 'Decision',      icon: '⚡' },
+  scope_decision: { label: 'Scope control', icon: '🎯' },
+  email_reply:    { label: 'Email reply',   icon: '✉️' },
+  document:       { label: 'Document',      icon: '📄' },
+  standup:        { label: 'Standup',       icon: '🎤' },
+  report:         { label: 'Report',        icon: '📊' },
+}
+
+export default function SimTaskPanel({ task, sessionId, onComplete }: Props) {
+  const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [freeText, setFreeText] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [textScore, setTextScore] = useState<number | null>(null)
+  const [result, setResult] = useState<any>(null)
+  const router = useRouter()
 
-  const personaKey = task.from_persona ?? 'boss'
-  const pStyle = PERSONA_STYLES[personaKey] ?? PERSONA_STYLES.boss
+  const urgencyConf = URGENCY_CONFIG[task.urgency] ?? URGENCY_CONFIG.normal
+  const typeConf = TYPE_CONFIG[task.type] ?? { label: task.type, icon: '📋' }
 
-  async function handleDecision(opt: DecisionOption) {
-    if (chosen) return
-    setChosen(opt.id)
-    setRevealed(true)
-    await simulationEngine.resolveDecision(opt.id)
-  }
+  // Decision tasks use option selection
+  const isDecision = task.type === 'decision' || task.type === 'scope_decision'
+  // Free text tasks
+  const isFreeText = ['email_reply', 'document', 'standup', 'report'].includes(task.type)
 
-  async function handleTextSubmit() {
-    if (!freeText.trim() || submitting) return
+  const canSubmit = isDecision ? !!selectedOption : freeText.trim().length > 20
+
+  async function handleSubmit() {
     setSubmitting(true)
-    // Score via AI API
-    let score = 70 // default fallback
     try {
-      const res = await fetch('/api/ai/score-response', {
+      const body: any = {
+        task_id: task.id,
+        session_id: sessionId,
+        task_type: task.type,
+      }
+
+      if (isDecision && selectedOption) {
+        body.decision_choice = selectedOption
+        // Determine quality from the option
+        const opt = (task.options ?? []).find((o: any) => o.id === selectedOption)
+        body.decision_quality = opt?.quality ?? 'medium'
+        body.user_response = opt?.text ?? ''
+      } else {
+        body.user_response = freeText
+        // Score free text via AI
+        const scoreRes = await fetch('/api/ai/score-response', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            task_type: task.type,
+            response: freeText,
+            rubric: [
+              'Clear and professional communication',
+              'Addresses the core issue directly',
+              'Appropriate level of detail for the context',
+              'Actionable — the reader knows what happens next',
+            ],
+          }),
+        })
+        const scored = await scoreRes.json()
+        body.decision_quality = scored.score >= 75 ? 'good' : scored.score >= 50 ? 'medium' : 'bad'
+        body.ai_score = scored.score
+        body.ai_feedback = scored.summary
+      }
+
+      const res = await fetch('/api/tasks/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          task_id: task.id,
-          rubric: task.scoring_rubric,
-          response: freeText,
-          career_path: simulationEngine.getState()?.careerPath,
-        }),
+        body: JSON.stringify(body),
       })
       const data = await res.json()
-      score = data.score ?? 70
-    } catch (_) {}
+      setResult({ ...data, decision_choice: selectedOption, task_type: task.type })
+      onComplete(data)
 
-    setTextScore(score)
-    await simulationEngine.resolveTextTask(task.id, freeText, score)
+      // Show level up if triggered
+      if (data.level_up) {
+        window.dispatchEvent(new CustomEvent('esp:levelup', { detail: data.level_up }))
+      }
+
+      // Toast
+      const xp = data.xp_earned ?? 0
+      const quality = body.decision_quality
+      ;(window as any).espToast?.(
+        quality === 'good'
+          ? `+${xp} XP — Strong decision. KPIs updated.`
+          : quality === 'medium'
+          ? `+${xp} XP — Acceptable. Review the feedback.`
+          : `Task completed. Review the feedback to improve your KPIs.`,
+        quality === 'good' ? 'success' : quality === 'medium' ? 'info' : 'info'
+      )
+
+      router.refresh()
+    } catch (e) {
+      ;(window as any).espToast?.('Submission failed. Try again.', 'error')
+    }
     setSubmitting(false)
   }
 
-  const isDecision = task.type === 'decision' || task.type === 'scope_decision'
-  const isFreeText = task.type === 'document' || task.type === 'standup' || task.type === 'report'
+  // ── Result screen ──────────────────────────────────────────
+  if (result) {
+    const quality = result.decision_quality ?? (
+      result.decision_choice
+        ? (task.options ?? []).find((o: any) => o.id === result.decision_choice)?.quality
+        : null
+    )
+    const feedback = result.ai_feedback ??
+      (task.options ?? []).find((o: any) => o.id === result.decision_choice)?.feedback ?? ''
+    const xp = result.xp_earned ?? 0
+    const kpis = result.kpis
 
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Result header */}
+        <div style={{
+          padding: '14px 16px',
+          borderRadius: 10,
+          background: quality === 'good' ? 'rgba(0,194,168,0.08)' : quality === 'bad' ? 'rgba(244,63,94,0.08)' : 'rgba(245,158,11,0.08)',
+          border: `1px solid ${quality === 'good' ? '#004D43' : quality === 'bad' ? '#3D0F1B' : '#3D2A00'}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <div style={{ fontSize: 22 }}>{quality === 'good' ? '✓' : quality === 'bad' ? '✗' : '~'}</div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: quality === 'good' ? '#00C2A8' : quality === 'bad' ? '#F43F5E' : '#F59E0B' }}>
+                {quality === 'good' ? 'Strong decision' : quality === 'bad' ? 'Poor decision — review feedback' : 'Acceptable — room to improve'}
+              </div>
+              <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>+{xp} XP earned</div>
+            </div>
+          </div>
+          {feedback && (
+            <div style={{ fontSize: 12, color: '#A0AEC0', lineHeight: 1.6, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
+              <span style={{ fontWeight: 500, color: '#E2E8F0' }}>Feedback: </span>{feedback}
+            </div>
+          )}
+        </div>
+
+        {/* KPI impact */}
+        {kpis && (
+          <div style={{ background: '#0D1117', border: '1px solid #1E2535', borderRadius: 10, padding: '12px 14px' }}>
+            <div style={{ fontSize: 10, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>KPI update</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+              {[
+                { label: 'Reliability', val: kpis.reliability, color: '#4ADE80' },
+                { label: 'Decision quality', val: kpis.quality, color: '#818CF8' },
+                { label: 'Responsiveness', val: kpis.responsiveness, color: '#F59E0B' },
+                { label: 'PI Score', val: kpis.performance_index, color: '#00C2A8' },
+              ].map(k => (
+                <div key={k.label} style={{ background: '#141420', borderRadius: 8, padding: '10px 12px' }}>
+                  <div style={{ fontSize: 10, color: '#4A5568', marginBottom: 3 }}>{k.label}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: k.color }}>{Math.round(k.val)}%</div>
+                  <div style={{ height: 3, background: '#1E2535', borderRadius: 2, marginTop: 5 }}>
+                    <div style={{ height: 3, borderRadius: 2, background: k.color, width: `${Math.min(100, k.val)}%`, transition: 'width 0.6s' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={() => router.push('/dashboard')}
+          style={{ padding: '11px', background: '#00C2A8', color: '#0A0A0F', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+        >
+          Back to dashboard →
+        </button>
+      </div>
+    )
+  }
+
+  // ── Task interface ─────────────────────────────────────────
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
       {/* Task header */}
-      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-        <div style={{
-          padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 500,
-          background: task.urgency === 'urgent' ? '#FEE2E2' : '#EFF6FF',
-          color: task.urgency === 'urgent' ? '#991B1B' : '#1E40AF',
-          flexShrink: 0, marginTop: 2,
-        }}>
-          {task.urgency === 'urgent' ? 'URGENT' : task.type.replace('_', ' ').toUpperCase()}
-        </div>
-        <h3 style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', lineHeight: 1.4 }}>{task.title}</h3>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 99, background: urgencyConf.bg, color: urgencyConf.color, fontWeight: 500 }}>
+          {typeConf.icon} {typeConf.label}
+        </span>
+        <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 99, background: urgencyConf.bg, color: urgencyConf.color, fontWeight: 500 }}>
+          {urgencyConf.label}
+        </span>
+        {task.xp_reward && (
+          <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 99, background: 'rgba(0,194,168,0.08)', color: '#00C2A8', fontWeight: 500, marginLeft: 'auto' }}>
+            +{task.xp_reward} XP available
+          </span>
+        )}
       </div>
 
-      {/* Scenario description */}
+      {/* Title */}
+      <div style={{ fontSize: 16, fontWeight: 700, color: '#E2E8F0', lineHeight: 1.3 }}>{task.title}</div>
+
+      {/* Scenario / description */}
       <div style={{
-        background: pStyle.bg, border: `0.5px solid ${pStyle.border}`,
-        borderLeft: `3px solid ${pStyle.border}`, borderRadius: 8,
-        padding: '12px 14px', fontSize: 13, color: '#374151', lineHeight: 1.6,
+        background: '#0D1117', border: '1px solid #1E2535',
+        borderLeft: `3px solid ${urgencyConf.color}`,
+        borderRadius: '0 8px 8px 0', padding: '12px 14px',
+        fontSize: 13, color: '#94A3B8', lineHeight: 1.7, whiteSpace: 'pre-wrap',
       }}>
         {task.description}
       </div>
@@ -101,155 +235,90 @@ export default function SimTaskPanel({ task, onComplete }: SimTaskPanelProps) {
       {/* Decision options */}
       {isDecision && task.options && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: '#64748B' }}>How do you respond?</div>
-          {task.options.map(opt => {
-            const isChosen = chosen === opt.id
-            const qStyle = revealed && isChosen ? QUALITY_STYLES[opt.quality] : null
-
+          <div style={{ fontSize: 11, color: '#4A5568', marginBottom: 2 }}>Choose your response:</div>
+          {(task.options as any[]).map((opt: any, i: number) => {
+            const isSelected = selectedOption === (opt.id ?? opt.value ?? i.toString())
+            const optId = opt.id ?? opt.value ?? i.toString()
             return (
-              <div key={opt.id}>
-                <div
-                  onClick={() => !chosen && handleDecision(opt)}
-                  style={{
-                    padding: '11px 14px', border: qStyle
-                      ? `1.5px solid ${qStyle.border}`
-                      : chosen
-                        ? '0.5px solid #E2E8F0'
-                        : '0.5px solid #CBD5E1',
-                    borderRadius: 8, cursor: chosen ? 'default' : 'pointer',
-                    background: qStyle?.bg ?? (chosen && !isChosen ? '#FAFAFA' : '#fff'),
-                    opacity: chosen && !isChosen ? 0.5 : 1,
-                    transition: 'all 0.15s', fontSize: 13, color: '#374151', lineHeight: 1.5,
-                    display: 'flex', gap: 10, alignItems: 'flex-start',
-                  }}
-                >
-                  <span style={{
-                    width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                    background: isChosen ? '#1F4E79' : '#F1F5F9',
-                    color: isChosen ? '#fff' : '#64748B',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 600, marginTop: 1,
-                  }}>
-                    {opt.id}
-                  </span>
-                  <span>{opt.text}</span>
+              <div
+                key={optId}
+                onClick={() => setSelectedOption(optId)}
+                style={{
+                  padding: '12px 14px',
+                  background: isSelected ? 'rgba(0,194,168,0.08)' : '#0D1117',
+                  border: `1px solid ${isSelected ? '#00C2A8' : '#1E2535'}`,
+                  borderRadius: 9, cursor: 'pointer',
+                  display: 'flex', gap: 10, alignItems: 'flex-start',
+                  transition: 'all 0.12s', lineHeight: 1.5,
+                }}
+              >
+                <div style={{
+                  width: 18, height: 18, borderRadius: '50%', flexShrink: 0, marginTop: 1,
+                  border: `1.5px solid ${isSelected ? '#00C2A8' : '#2D3748'}`,
+                  background: isSelected ? '#00C2A8' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 9, color: '#0A0A0F', fontWeight: 700,
+                }}>
+                  {isSelected ? '✓' : ''}
                 </div>
-
-                {/* Consequence reveal */}
-                {revealed && isChosen && (
-                  <div style={{
-                    marginTop: 8, padding: '10px 14px', borderRadius: 8,
-                    background: qStyle?.bg, border: `0.5px solid ${qStyle?.border}`,
-                    display: 'flex', flexDirection: 'column', gap: 6,
-                  }}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <span style={{
-                        fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
-                        background: qStyle?.labelBg, color: qStyle?.labelText,
-                      }}>
-                        {qStyle?.label}
-                      </span>
-                      <span style={{ fontSize: 11, color: '#64748B' }}>+{opt.xp} XP</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
-                      {opt.consequence}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {Object.entries(opt.kpi_impact).map(([k, v]) => (
-                        <span key={k} style={{
-                          fontSize: 10, padding: '2px 8px', borderRadius: 99,
-                          background: v > 0 ? '#DCFCE7' : '#FEE2E2',
-                          color: v > 0 ? '#166534' : '#991B1B',
-                        }}>
-                          {k.replace('_', ' ')} {v > 0 ? '+' : ''}{v}%
-                        </span>
-                      ))}
-                    </div>
-                    <button
-                      onClick={onComplete}
-                      style={{
-                        alignSelf: 'flex-end', padding: '7px 16px', background: '#1F4E79',
-                        color: '#fff', border: 'none', borderRadius: 8, fontSize: 12,
-                        fontWeight: 500, cursor: 'pointer', marginTop: 4,
-                      }}
-                    >
-                      Continue →
-                    </button>
-                  </div>
-                )}
+                <span style={{ fontSize: 13, color: isSelected ? '#E2E8F0' : '#64748B', fontWeight: isSelected ? 500 : 400 }}>
+                  {opt.text ?? opt.l}
+                </span>
               </div>
             )
           })}
         </div>
       )}
 
-      {/* Free-text response */}
-      {isFreeText && textScore === null && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {task.free_text_prompt && (
-            <div style={{ fontSize: 12, color: '#64748B', fontStyle: 'italic' }}>{task.free_text_prompt}</div>
-          )}
-          {task.scoring_rubric && (
-            <div style={{ background: '#F8FAFC', border: '0.5px solid #E2E8F0', borderRadius: 8, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#64748B', marginBottom: 6 }}>What good looks like:</div>
-              {task.scoring_rubric.map((r, i) => (
-                <div key={i} style={{ fontSize: 11, color: '#64748B', display: 'flex', gap: 6, marginBottom: 3 }}>
-                  <span style={{ color: '#10B981', flexShrink: 0 }}>✓</span>
-                  {r}
-                </div>
-              ))}
-            </div>
-          )}
+      {/* Free text input */}
+      {isFreeText && (
+        <div>
+          <div style={{ fontSize: 11, color: '#4A5568', marginBottom: 6 }}>
+            {task.type === 'email_reply' ? 'Write your reply:' :
+             task.type === 'standup' ? 'Write your standup update:' :
+             task.type === 'document' ? 'Write your document / notes:' : 'Write your report:'}
+          </div>
           <textarea
             value={freeText}
             onChange={e => setFreeText(e.target.value)}
-            placeholder="Type your response here..."
-            rows={5}
+            placeholder={
+              task.type === 'email_reply' ? 'Write a professional reply...' :
+              task.type === 'standup' ? 'Yesterday: ...\nToday: ...\nBlockers: ...' :
+              'Write clearly and concisely...'
+            }
+            rows={8}
             style={{
-              width: '100%', padding: '10px 12px', border: '0.5px solid #CBD5E1',
-              borderRadius: 8, fontSize: 13, outline: 'none', resize: 'vertical',
-              fontFamily: 'inherit', lineHeight: 1.6, boxSizing: 'border-box',
+              width: '100%', background: '#0D1117', border: '1px solid #2D3748',
+              borderRadius: 9, padding: '12px 14px', color: '#E2E8F0',
+              fontSize: 13, fontFamily: 'inherit', lineHeight: 1.65,
+              resize: 'vertical', outline: 'none', boxSizing: 'border-box',
             }}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: '#94A3B8' }}>{freeText.split(' ').filter(Boolean).length} words</span>
-            <button
-              onClick={handleTextSubmit}
-              disabled={!freeText.trim() || submitting}
-              style={{
-                padding: '8px 18px', background: freeText.trim() ? '#1F4E79' : '#E2E8F0',
-                color: freeText.trim() ? '#fff' : '#94A3B8', border: 'none',
-                borderRadius: 8, fontSize: 13, fontWeight: 500,
-                cursor: freeText.trim() ? 'pointer' : 'not-allowed',
-              }}
-            >
-              {submitting ? 'Scoring...' : 'Submit →'}
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
+            <span style={{ fontSize: 11, color: '#334155' }}>
+              {freeText.split(/\s+/).filter(Boolean).length} words
+            </span>
+            <span style={{ fontSize: 11, color: '#334155' }}>
+              Scored on: clarity · professionalism · actionability · completeness
+            </span>
           </div>
         </div>
       )}
 
-      {/* Text score result */}
-      {isFreeText && textScore !== null && (
-        <div style={{
-          padding: '14px', borderRadius: 8,
-          background: textScore >= 80 ? '#F0FDF4' : textScore >= 60 ? '#FFFBEB' : '#FFF5F5',
-          border: `0.5px solid ${textScore >= 80 ? '#86EFAC' : textScore >= 60 ? '#FCD34D' : '#FCA5A5'}`,
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#0F172A' }}>Response scored</span>
-            <span style={{ fontSize: 20, fontWeight: 700, color: textScore >= 80 ? '#166534' : textScore >= 60 ? '#854D0E' : '#991B1B' }}>
-              {textScore}/100
-            </span>
-          </div>
-          <div style={{ fontSize: 12, color: '#64748B', marginBottom: 10 }}>
-            {textScore >= 80 ? 'Excellent — clear, precise, and professional.' : textScore >= 60 ? 'Good effort. Review the rubric to sharpen your approach.' : 'Needs improvement. Focus on the scoring criteria and try again next time.'}
-          </div>
-          <button onClick={onComplete} style={{ padding: '7px 16px', background: '#1F4E79', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
-            Continue →
-          </button>
-        </div>
-      )}
+      {/* Submit */}
+      <button
+        onClick={handleSubmit}
+        disabled={!canSubmit || submitting}
+        style={{
+          padding: '12px', background: canSubmit && !submitting ? '#00C2A8' : '#1E2535',
+          color: canSubmit && !submitting ? '#0A0A0F' : '#334155',
+          border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 600,
+          cursor: canSubmit && !submitting ? 'pointer' : 'not-allowed',
+          transition: 'all 0.15s',
+        }}
+      >
+        {submitting ? 'Submitting...' : isDecision ? 'Submit decision →' : 'Submit response →'}
+      </button>
     </div>
   )
 }

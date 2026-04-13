@@ -1,152 +1,147 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { simulationEngine, EngineState, EngineMessage } from '@/lib/simulation-engine'
-import SimTaskPanel from './SimTaskPanel'
-import { CAREER_PATH_DISPLAY } from '@/lib/simulation-scripts'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import SimTaskPanel from '@/components/SimTaskPanel'
 
 interface Props {
   profile: any
   activeSession: any
+  pendingTasks: any[]
+  completedTasks: any[]
 }
 
-export default function SimulateClient({ profile, activeSession }: Props) {
-  const [engineState, setEngineState] = useState<EngineState | null>(simulationEngine.getState())
-  const [started, setStarted] = useState(false)
+const URGENCY_ORDER: Record<string, number> = { urgent: 0, high: 1, normal: 2 }
 
-  // Subscribe to engine updates
-  useEffect(() => {
-    const unsub = simulationEngine.subscribe(state => setEngineState({ ...state }))
-    return unsub
-  }, [])
+export default function SimulateClient({ profile, activeSession, pendingTasks, completedTasks }: Props) {
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(
+    pendingTasks.sort((a, b) => (URGENCY_ORDER[a.urgency] ?? 2) - (URGENCY_ORDER[b.urgency] ?? 2))[0]?.id ?? null
+  )
+  const router = useRouter()
 
-  // If there's an active session and engine isn't running, start it
-  useEffect(() => {
-    if (activeSession && !simulationEngine.getState() && !started) {
-      startEngine()
-    }
-  }, [activeSession])
+  const sortedPending = [...pendingTasks].sort((a, b) =>
+    (URGENCY_ORDER[a.urgency] ?? 2) - (URGENCY_ORDER[b.urgency] ?? 2)
+  )
 
-  async function startEngine() {
-    if (!activeSession) return
-    setStarted(true)
-    await simulationEngine.start({
-      sessionId: activeSession.id,
-      careerPath: profile.career_path,
-      simDay: activeSession.sim_day ?? 1,
-      userId: profile.id,
-    })
+  const activeTask = sortedPending.find(t => t.id === activeTaskId) ?? sortedPending[0] ?? null
+
+  function handleComplete(result: any) {
+    // Move to next pending task after a short delay
+    setTimeout(() => {
+      const remaining = sortedPending.filter(t => t.id !== activeTaskId)
+      setActiveTaskId(remaining[0]?.id ?? null)
+      router.refresh()
+    }, 2000)
   }
-
-  const handleTaskComplete = useCallback(() => {
-    // Refresh the engine state display after completing a task
-    setEngineState(simulationEngine.getState())
-  }, [])
 
   // Not clocked in
   if (!activeSession) {
     return (
-      <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-        <div style={{ maxWidth: 460, margin: '0 auto' }}>
-          <div style={{ width: 56, height: 56, background: '#EBF3FB', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24, color: '#1F4E79' }}>
-            ▶
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 600, color: '#0F172A', marginBottom: 8 }}>Ready to simulate?</div>
-          <div style={{ fontSize: 14, color: '#64748B', lineHeight: 1.6, marginBottom: 20 }}>
-            You need to clock in from the Dashboard to start a simulation session. Your AI coworkers are standing by.
-          </div>
-          <a href="/dashboard" style={{ display: 'inline-block', padding: '10px 24px', background: '#1F4E79', color: '#fff', borderRadius: 8, fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
-            Go to dashboard →
-          </a>
-        </div>
+      <div style={{ padding: '40px 20px', textAlign: 'center', color: '#64748B', fontSize: 13, fontFamily: "'Segoe UI',system-ui,sans-serif" }}>
+        <div style={{ fontSize: 32, marginBottom: 16 }}>▶</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#E2E8F0', marginBottom: 8 }}>Not clocked in</div>
+        <div style={{ marginBottom: 20, color: '#4A5568' }}>Clock in from the Dashboard to receive tasks from your AI colleagues.</div>
+        <button onClick={() => router.push('/dashboard')} style={{ padding: '10px 24px', background: '#00C2A8', color: '#0A0A0F', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          Go to dashboard →
+        </button>
       </div>
     )
   }
 
-  // Session active but engine not started yet
-  if (!engineState) {
+  // All tasks done
+  if (sortedPending.length === 0 && completedTasks.length > 0) {
+    const xpTotal = completedTasks.reduce((t, task) => t + (task.xp_earned ?? 0), 0)
+    const goodDecisions = completedTasks.filter(t => t.decision_quality === 'good').length
     return (
-      <div style={{ padding: '40px 20px', textAlign: 'center', color: '#64748B', fontSize: 13 }}>
-        <div className="esp-skeleton" style={{ width: 200, height: 20, margin: '0 auto 12px' }} />
-        <div className="esp-skeleton" style={{ width: 140, height: 14, margin: '0 auto' }} />
-      </div>
-    )
-  }
-
-  const { activeTask, messages, kpis, xp, simDay } = engineState
-  const pendingCount = engineState.pendingTaskIds.size
-  const completedCount = engineState.completedTaskIds.size
-
-  return (
-    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
-
-      {/* Main area */}
-      <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
-
-        {/* Day header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#0F172A' }}>Day {simDay} — {CAREER_PATH_DISPLAY[profile.career_path]?.label}</div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#EAF3DE', color: '#166534', fontWeight: 500 }}>{completedCount} done</span>
-            <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#EBF3FB', color: '#1F4E79', fontWeight: 500 }}>{pendingCount} pending</span>
-            <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#F1F5F9', color: '#64748B', fontWeight: 500 }}>{xp} XP</span>
+      <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: "'Segoe UI',system-ui,sans-serif" }}>
+        <div style={{ maxWidth: 480, margin: '0 auto' }}>
+          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(0,194,168,0.1)', border: '2px solid #00C2A8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 28 }}>★</div>
+          <div style={{ fontSize: 10, color: '#00C2A8', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>Day complete</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: '#E2E8F0', marginBottom: 8 }}>All tasks completed</div>
+          <div style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6, marginBottom: 24 }}>
+            You completed {completedTasks.length} tasks today, earned {xpTotal} XP, and made {goodDecisions} strong decisions.
           </div>
-        </div>
-
-        {/* Active task */}
-        {activeTask ? (
-          <div className="esp-card esp-fadein" style={{ marginBottom: 16 }}>
-            <SimTaskPanel task={activeTask} onComplete={handleTaskComplete} />
-          </div>
-        ) : (
-          <div style={{ padding: '32px', textAlign: 'center', background: '#fff', border: '0.5px solid #E2E8F0', borderRadius: 12, marginBottom: 16 }}>
-            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 4 }}>Waiting for next task...</div>
-            <div style={{ fontSize: 12, color: '#94A3B8' }}>Tasks are released on a simulated schedule. Stay ready.</div>
-          </div>
-        )}
-
-        {/* Engine message feed */}
-        {messages.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 11, fontWeight: 500, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Activity feed</div>
-            {messages.slice(0, 8).map((msg: EngineMessage) => (
-              <div key={msg.id} className="esp-fadein" style={{
-                padding: '10px 14px', borderRadius: 8, fontSize: 12,
-                background: msg.severity === 'positive' ? '#F0FDF4' : msg.severity === 'negative' ? '#FEF2F2' : '#F8FAFC',
-                color: msg.severity === 'positive' ? '#166534' : msg.severity === 'negative' ? '#991B1B' : '#64748B',
-                borderLeft: `3px solid ${msg.severity === 'positive' ? '#86EFAC' : msg.severity === 'negative' ? '#FCA5A5' : '#E2E8F0'}`,
-                lineHeight: 1.5,
-              }}>
-                {msg.text}
+          <div style={{ background: '#0D1117', border: '1px solid #1E2535', borderRadius: 12, padding: '14px 18px', marginBottom: 20, textAlign: 'left' }}>
+            {completedTasks.map((t: any) => (
+              <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #1E2535', fontSize: 12 }}>
+                <span style={{ color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>{t.title}</span>
+                <span style={{ color: t.decision_quality === 'good' ? '#00C2A8' : t.decision_quality === 'bad' ? '#F43F5E' : '#F59E0B', fontWeight: 500, flexShrink: 0 }}>
+                  +{t.xp_earned ?? 0} XP
+                </span>
               </div>
             ))}
           </div>
+          <button onClick={() => router.push('/dashboard/kpis')} style={{ width: '100%', padding: '12px', background: '#00C2A8', color: '#0A0A0F', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            View my KPIs →
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden', fontFamily: "'Segoe UI',system-ui,sans-serif", background: '#0A0A0F' }}>
+
+      {/* Task list sidebar */}
+      <div style={{ width: 260, borderRight: '1px solid #1E2535', overflow: 'auto', background: '#0D1117', flexShrink: 0 }}>
+        <div style={{ padding: '12px 14px', borderBottom: '1px solid #1E2535' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#00C2A8', marginBottom: 2 }}>TODAY'S TASKS</div>
+          <div style={{ fontSize: 10, color: '#334155' }}>{sortedPending.length} pending · {completedTasks.length} done</div>
+        </div>
+
+        {/* Pending */}
+        {sortedPending.map(task => {
+          const isActive = task.id === activeTaskId
+          const urgColors: Record<string, string> = { urgent: '#F43F5E', high: '#F59E0B', normal: '#00C2A8' }
+          return (
+            <div
+              key={task.id}
+              onClick={() => setActiveTaskId(task.id)}
+              style={{
+                padding: '11px 14px', cursor: 'pointer',
+                background: isActive ? 'rgba(0,194,168,0.06)' : 'transparent',
+                borderLeft: `3px solid ${isActive ? '#00C2A8' : urgColors[task.urgency] ?? '#2D3748'}`,
+                borderBottom: '1px solid #1E2535', transition: 'background 0.1s',
+              }}
+            >
+              <div style={{ fontSize: 11, fontWeight: isActive ? 600 : 500, color: isActive ? '#00C2A8' : '#A0AEC0', lineHeight: 1.3, marginBottom: 3 }}>{task.title}</div>
+              <div style={{ fontSize: 10, color: '#334155' }}>
+                {task.urgency === 'urgent' ? '🔴 Urgent' : task.urgency === 'high' ? '🟡 High' : '🟢 Normal'} · +{task.xp_reward ?? 0} XP
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Completed */}
+        {completedTasks.length > 0 && (
+          <>
+            <div style={{ padding: '8px 14px 4px', fontSize: 10, color: '#2D3748', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Completed</div>
+            {completedTasks.map(task => (
+              <div key={task.id} style={{ padding: '10px 14px', borderBottom: '1px solid #1E2535', borderLeft: '3px solid #1E2535', opacity: 0.5 }}>
+                <div style={{ fontSize: 11, color: '#4A5568', textDecoration: 'line-through', lineHeight: 1.3 }}>{task.title}</div>
+                <div style={{ fontSize: 10, color: '#2D3748', marginTop: 2 }}>
+                  {task.decision_quality === 'good' ? '✓ Strong' : task.decision_quality === 'bad' ? '✗ Review' : '~ Acceptable'} · +{task.xp_earned ?? 0} XP
+                </div>
+              </div>
+            ))}
+          </>
         )}
       </div>
 
-      {/* KPI sidebar */}
-      <div style={{ width: 220, borderLeft: '0.5px solid #E2E8F0', padding: '16px', background: '#fff', overflow: 'auto', flexShrink: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: '#64748B', marginBottom: 12 }}>Live KPIs</div>
-        {[
-          { label: 'Reliability', val: kpis.reliability, color: '#1D9E75' },
-          { label: 'Responsiveness', val: kpis.responsiveness, color: '#EF9F27' },
-          { label: 'Decision quality', val: kpis.quality, color: '#378ADD' },
-          { label: 'Scope control', val: kpis.scope_control, color: '#7C3AED' },
-        ].map(k => (
-          <div key={k.label} style={{ marginBottom: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 11, color: '#64748B' }}>{k.label}</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: k.color }}>{k.val}%</span>
-            </div>
-            <div className="esp-bar-track">
-              <div className="esp-bar-fill" style={{ width: `${k.val}%`, background: k.color }} />
-            </div>
+      {/* Active task panel */}
+      <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
+        {activeTask ? (
+          <SimTaskPanel
+            key={activeTask.id}
+            task={activeTask}
+            sessionId={activeSession?.id ?? ''}
+            onComplete={handleComplete}
+          />
+        ) : (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#4A5568' }}>
+            <div style={{ fontSize: 13 }}>Select a task from the left to begin</div>
           </div>
-        ))}
-        <div style={{ borderTop: '0.5px solid #E2E8F0', paddingTop: 12, marginTop: 4 }}>
-          <div style={{ fontSize: 11, color: '#64748B', marginBottom: 4 }}>Performance index</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#1F4E79' }}>{kpis.performance_index}</div>
-        </div>
+        )}
       </div>
     </div>
   )

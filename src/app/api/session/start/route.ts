@@ -29,6 +29,12 @@ const DAY1_TASKS: Record<string, any[]> = {
     { title: 'Daily standup', type: 'standup', urgency: 'normal', description: 'Write your standup: yesterday, today, blockers.', xp: 15, due_offset_mins: 90 },
     { title: 'A/B test plan — landing page headline', type: 'document', urgency: 'normal', description: 'Set up an A/B test plan for the new landing page headline. Define the hypothesis, sample size, duration, and success metric.', xp: 30, due_offset_mins: 180 },
   ],
+  reliability_engineering: [
+    { title: 'URGENT: Bearing failure — Conveyor 3, Line 2', type: 'decision', urgency: 'urgent', description: 'You arrive on shift at 06:00. Outgoing technician reports unusual noise on Conveyor 3 since 04:30. Production is running. You identify a failing main drive bearing. No spare on site. Line produces 800 units/hour. Downtime costs £4,200/hour. What do you do?', xp: 40, due_offset_mins: 30 },
+    { title: 'Write your shift handover notes', type: 'document', urgency: 'normal', description: 'End of shift at 14:00. During your shift: Line 2 was stopped 2.5 hours for bearing replacement (now resolved). 3 of 5 PM tasks completed. 2 overdue PM tasks remain on Pasteuriser 1. Minor oil leak spotted on Compressor 2 — not critical, needs monitoring. Write your handover notes.', xp: 25, due_offset_mins: 90 },
+    { title: 'Production manager asking why Line 2 stopped', type: 'email_reply', urgency: 'urgent', description: 'David Okafor (Production Manager) has emailed asking for an explanation of the Line 2 stoppage for his 15:00 ops meeting. He needs to know what happened, why, and what was done about it. Reply professionally — David is production, not maintenance.', xp: 30, due_offset_mins: 45 },
+    { title: 'Overdue PM decision — Pasteuriser 1', type: 'decision', urgency: 'normal', description: 'Two PM tasks on Pasteuriser 1 are 1 week overdue. Each takes 45 minutes. Production can only offer a 30-minute CIP break tomorrow morning. Your maintenance lead wants them done. What do you recommend?', xp: 35, due_offset_mins: 180 },
+  ],
   financial_analysis: [
     { title: 'Variance analysis — Q4 actuals vs budget', type: 'report', urgency: 'high', description: 'Q4 actuals are in. Revenue is up 15% YoY but net profit has fallen. Write a variance analysis identifying the key drivers.', xp: 40, due_offset_mins: 90 },
     { title: 'Three-scenario model for board presentation', type: 'document', urgency: 'urgent', description: 'The CFO needs three financial scenarios (base, upside, downside) for a new product launch. Board meeting is tomorrow 9am. You have 4 hours.', xp: 45, due_offset_mins: 240 },
@@ -97,6 +103,24 @@ Heads up on two things:
 
 JH`,
   },
+  reliability_engineering: {
+    subject: 'Morning brief — bearing failure on Line 2, PM backlog to clear',
+    body: `Morning,
+
+Heads up on what needs your attention today:
+
+1. Line 2 — Conveyor 3 has a bearing issue flagged from nights. Inspect it first thing. If it's as bad as the handover suggests, you know what to do. Safety first, then get me a picture on downtime and recovery timeline.
+
+2. The PM backlog on Pasteuriser 1 is now 1 week overdue. I need a plan to clear it this week. Talk to production today — not tomorrow.
+
+3. David in production will want answers on any downtime. Keep your communication clear and factual. He's not technical but he's reasonable.
+
+4. Compressor 2 oil leak — keep an eye on it. Log it properly so we have a record if it develops.
+
+Good shift.
+
+MK (Mike Kowalski, Maintenance Manager)`,
+  },
   financial_analysis: {
     subject: 'Q4 actuals are in — urgent analysis needed',
     body: `Morning,
@@ -144,9 +168,23 @@ export async function POST(req: NextRequest) {
 
   const now = new Date()
 
-  // Seed Day 1 tasks
-  const tasks = DAY1_TASKS[career_path] ?? DAY1_TASKS.data_engineering
-  const taskInserts = tasks.map((t, i) => ({
+  // Get tasks for correct day (Day 1 hardcoded, Days 2-5 from scripts)
+  let taskSource = DAY1_TASKS[career_path] ?? DAY1_TASKS.data_engineering
+  let briefingSource = MORNING_BRIEFINGS[career_path] ?? MORNING_BRIEFINGS.data_engineering
+
+  if (sim_day >= 2) {
+    const dayData = await getDayTasksAndBriefing(career_path, sim_day)
+    if (dayData?.tasks?.length) {
+      taskSource = dayData.tasks.map((t: any) => ({
+        title: t.title, type: t.type, urgency: t.urgency,
+        description: t.description, xp: t.xp_reward, due_offset_mins: t.due_offset_mins,
+      }))
+    }
+    if (dayData?.briefing) briefingSource = dayData.briefing
+  }
+
+  const tasks = taskSource
+  const taskInserts = tasks.map((t: any, i: number) => ({
     user_id: user.id,
     session_id: session.id,
     title: t.title,
@@ -162,7 +200,7 @@ export async function POST(req: NextRequest) {
   await supabase.from('tasks').insert(taskInserts)
 
   // Send morning briefing from James (guaranteed — no Gemini needed)
-  const briefing = MORNING_BRIEFINGS[career_path] ?? MORNING_BRIEFINGS.data_engineering
+  const briefing = briefingSource
   await supabase.from('messages').insert({
     session_id: session.id,
     user_id: user.id,
@@ -182,7 +220,7 @@ export async function POST(req: NextRequest) {
     const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
     const generated = await generateCoworkerMessage({
       persona: 'marcus',
-      scenario: 'morning_briefing',
+      scenario: 'scope_creep',
       context: {
         userName: profile?.full_name ?? 'there',
         careerPath: career_path,
@@ -213,4 +251,17 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ session, tasks_seeded: taskInserts.length })
 }
 
-export const dynamic = 'force-dynamic'
+// ── Days 2–5 task seeding ─────────────────────────────────────
+// Import at runtime to avoid circular dependency
+async function getDayTasksAndBriefing(careerPath: string, simDay: number) {
+  if (simDay <= 1) return null
+  try {
+    const { getDayTasks, DAILY_BRIEFINGS } = await import('@/lib/simulation-scripts-days2to5')
+    const day = Math.min(simDay, 5) as 2|3|4|5
+    const tasks = getDayTasks(careerPath, day)
+    const briefing = DAILY_BRIEFINGS[careerPath]?.[day]
+    return { tasks, briefing }
+  } catch {
+    return null
+  }
+}
