@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
     const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
     const generated = await generateCoworkerMessage({
       persona: 'marcus',
-      scenario: 'scope_creep',
+      scenario: 'morning_briefing',
       context: {
         userName: profile?.full_name ?? 'there',
         careerPath: career_path,
