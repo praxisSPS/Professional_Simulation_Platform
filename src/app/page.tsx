@@ -28,8 +28,9 @@ export default function AuthPage() {
         options: { data: { full_name: fullName } },
       })
       if (error) { setError(error.message); setLoading(false); return }
-      // After signup go to onboarding to pick career path
-      router.push('/onboarding')
+      // After signup go to onboarding
+      window.location.href = '/onboarding'
+      return
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
