@@ -59,8 +59,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Logged in + on login page → redirect to dashboard
+  // Logged in + on login page → check profile first
   if (user && pathname === '/') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('career_path')
+      .eq('id', user.id)
+      .single()
+    if (!profile?.career_path) {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
