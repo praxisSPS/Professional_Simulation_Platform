@@ -1,0 +1,407 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
+.os{display:grid;grid-template-rows:50px 1fr;height:680px;background:#0A0A0F;border-radius:12px;overflow:hidden;border:1px solid #1E2535;font-size:13px}
+.topbar{background:#0D1117;border-bottom:1px solid #1E2535;display:flex;align-items:center;padding:0 16px;gap:12px}
+.logo{font-size:13px;font-weight:700;color:#00C2A8;letter-spacing:.12em}
+.org-tag{font-size:11px;color:#334155;background:#141420;padding:3px 10px;border-radius:99px}
+.tb-kpis{display:flex;gap:8px;margin-left:12px}
+.kpi-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.05);border-radius:99px;padding:3px 10px}
+.kpi-dot{width:6px;height:6px;border-radius:50%}
+.kpi-txt{font-size:10px;color:#94A3B8}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.tb-clock{font-size:11px;color:#4A5568;font-variant-numeric:tabular-nums}
+.tb-avatar{width:26px;height:26px;border-radius:50%;background:#00C2A8;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#0A0A0F}
+.main{display:grid;grid-template-columns:180px 1fr;overflow:hidden}
+.sidebar{background:#0D1117;border-right:1px solid #1E2535;display:flex;flex-direction:column}
+.nav-section{padding:12px 0 4px}
+.nav-label{font-size:9px;font-weight:600;color:#2D3748;text-transform:uppercase;letter-spacing:.08em;padding:0 14px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:11px;color:#4A5568;cursor:pointer;border-right:2px solid transparent;transition:all .12s}
+.nav-item:hover{background:rgba(255,255,255,.03);color:#A0AEC0}
+.nav-item.active{color:#00C2A8;border-right-color:#00C2A8;background:rgba(0,194,168,.05)}
+.nav-badge{margin-left:auto;background:#F43F5E;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px}
+.nav-dot{width:5px;height:5px;border-radius:50%;margin-left:auto}
+.nav-footer{margin-top:auto;padding:12px 14px;border-top:1px solid #1E2535}
+.nf-label{font-size:9px;color:#2D3748;margin-bottom:3px}
+.nf-path{font-size:11px;font-weight:500;color:#64748B}
+.nf-level{font-size:10px;color:#334155;margin-top:1px}
+.xp-track{height:3px;background:#1E2535;border-radius:2px;margin-top:6px}
+.xp-fill{height:3px;border-radius:2px;background:#00C2A8;transition:width .5s}
+.content{overflow:auto;background:#0A0A0F}
+.panel{display:none;height:100%;flex-direction:column}
+.panel.active{display:flex}
+.panel-hdr{padding:14px 18px 12px;border-bottom:1px solid #1E2535;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.panel-title{font-size:14px;font-weight:600;color:#E2E8F0}
+.panel-sub{font-size:11px;color:#4A5568;margin-left:auto}
+.panel-body{padding:16px 18px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.card{background:#0D1117;border:1px solid #1E2535;border-radius:10px;padding:14px 16px}
+.card-teal{border-color:#004D43;background:rgba(0,77,67,.2)}
+.card-red{border-color:#3D0F1B;background:rgba(61,15,27,.2)}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stat{background:#0D1117;border:1px solid #1E2535;border-radius:8px;padding:12px}
+.stat-val{font-size:22px;font-weight:700;line-height:1}
+.stat-lbl{font-size:10px;color:#4A5568;margin-top:3px}
+.bar-wrap{height:3px;background:#1E2535;border-radius:2px;margin-top:8px}
+.bar-fill{height:3px;border-radius:2px;transition:width .6s}
+.badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:500;display:inline-block}
+.badge-teal{background:rgba(0,194,168,.12);color:#00C2A8}
+.badge-red{background:rgba(244,63,94,.12);color:#F43F5E}
+.badge-amber{background:rgba(245,158,11,.12);color:#F59E0B}
+.badge-grey{background:rgba(100,116,139,.12);color:#64748B}
+.msg-row{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid #1E2535;border-radius:8px;cursor:pointer;transition:background .1s}
+.msg-row:hover{background:rgba(255,255,255,.02)}
+.msg-row.urgent{border-left:3px solid #F43F5E}
+.msg-row.unread{border-left:3px solid #00C2A8}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.av-boss{background:#004D43;color:#00C2A8}
+.av-marcus{background:#1A2F1A;color:#4ADE80}
+.av-sarah{background:#2F1A1A;color:#F87171}
+.av-client{background:#1A1A2F;color:#818CF8}
+.msg-body{flex:1;min-width:0}
+.msg-from{font-size:11px;font-weight:600;color:#E2E8F0}
+.msg-subj{font-size:11px;color:#4A5568;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg-time{font-size:10px;color:#2D3748;flex-shrink:0}
+.task-card{border:1px solid #1E2535;border-radius:8px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:background .1s}
+.task-card:hover{background:rgba(255,255,255,.02)}
+.task-card.urgent-task{border-color:#3D0F1B}
+.task-check{width:16px;height:16px;border-radius:3px;border:1px solid #2D3748;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px}
+.task-check.done{background:#004D43;border-color:#00C2A8;color:#00C2A8}
+.decision-box{border:1px solid #1E2535;border-radius:10px;padding:16px;margin-top:4px}
+.decision-prompt{font-size:12px;font-weight:500;color:#E2E8F0;margin-bottom:12px;line-height:1.5}
+.d-opt{padding:10px 12px;border:1px solid #1E2535;border-radius:7px;font-size:11px;color:#64748B;cursor:pointer;margin-bottom:6px;line-height:1.5;transition:all .15s}
+.d-opt:hover{background:rgba(255,255,255,.03);color:#A0AEC0;border-color:#2D3748}
+.d-opt.good{background:rgba(0,194,168,.08);color:#00C2A8;border-color:#004D43}
+.d-opt.bad{background:rgba(244,63,94,.08);color:#F43F5E;border-color:#3D0F1B}
+.consequence{padding:10px 12px;border-radius:7px;font-size:11px;margin-top:8px;line-height:1.5}
+.con-good{background:rgba(0,194,168,.08);color:#00C2A8;border-left:3px solid #00C2A8;border-radius:0 7px 7px 0}
+.con-bad{background:rgba(244,63,94,.08);color:#F43F5E;border-left:3px solid #F43F5E;border-radius:0 7px 7px 0}
+.level-ring{width:64px;height:64px;border-radius:50%;background:rgba(0,194,168,.08);border:2px solid #004D43;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.ring-num{font-size:20px;font-weight:700;color:#00C2A8;line-height:1}
+.ring-lbl{font-size:8px;color:#004D43}
+.segment-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.seg-card{background:#0D1117;border:1px solid #1E2535;border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s}
+.seg-card:hover{border-color:#2D3748}
+.seg-num{font-size:9px;font-weight:700;letter-spacing:.06em}
+.seg-name{font-size:11px;font-weight:500;color:#A0AEC0;margin-top:2px}
+.seg-sub{font-size:9px;color:#2D3748;margin-top:2px}
+.clock-bar{padding:10px 18px;border-bottom:1px solid #1E2535;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.clock-btn{padding:6px 16px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid;transition:all .15s}
+.btn-in{background:#00C2A8;color:#0A0A0F;border-color:#00C2A8}
+.btn-in:hover{background:#00A08A}
+.btn-out{background:rgba(244,63,94,.1);color:#F43F5E;border-color:#3D0F1B}
+</style>
+
+<div class="os">
+  <div class="topbar">
+    <span class="logo">PRAXIS</span>
+    <span class="org-tag">Nexus Digital · Simulation</span>
+    <div class="tb-kpis">
+      <div class="kpi-pill"><div class="kpi-dot" style="background:#00C2A8"></div><span class="kpi-txt">PI 84</span></div>
+      <div class="kpi-pill"><div class="kpi-dot" style="background:#F59E0B"></div><span class="kpi-txt">Reliability 88%</span></div>
+      <div class="kpi-pill"><div class="kpi-dot" style="background:#818CF8"></div><span class="kpi-txt">Quality 79%</span></div>
+    </div>
+    <div class="tb-right">
+      <span class="tb-clock" id="tb-clock">09:14 · Day 2</span>
+      <div class="tb-avatar">HG</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="nav-section">
+        <div class="nav-label">Workspace</div>
+        <div class="nav-item active" onclick="show('dashboard')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item" onclick="show('inbox')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 4l10 9 10-9"/></svg>
+          Inbox
+          <span class="nav-badge">3</span>
+        </div>
+        <div class="nav-item" onclick="show('simulate')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+          Simulate
+          <div class="nav-dot" style="background:#F43F5E"></div>
+        </div>
+        <div class="nav-item" onclick="show('kpis')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>
+          My KPIs
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Platform</div>
+        <div class="nav-item" onclick="show('segments')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20M2 12h20"/></svg>
+          All segments
+        </div>
+        <div class="nav-item" onclick="show('portfolio')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          Portfolio
+        </div>
+        <div class="nav-item" onclick="show('jobs')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+          Job board
+        </div>
+      </div>
+      <div class="nav-footer">
+        <div class="nf-label">Career path</div>
+        <div class="nf-path">Data Engineering</div>
+        <div class="nf-level">Level 2 · Graduate Analyst</div>
+        <div class="xp-track"><div class="xp-fill" id="xp-bar" style="width:68%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#2D3748;margin-top:3px"><span>340 XP</span><span>500 XP</span></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div id="panel-dashboard" class="panel active">
+        <div class="clock-bar">
+          <div style="width:7px;height:7px;border-radius:50%;background:#00C2A8"></div>
+          <span style="font-size:11px;color:#4A5568">Clocked in · 09:00</span>
+          <button class="clock-btn btn-out" onclick="show('inbox')">Clock out</button>
+          <span style="margin-left:auto;font-size:10px;color:#2D3748">Session: 74 min</span>
+        </div>
+        <div class="panel-body">
+          <div class="card card-red" style="cursor:pointer" onclick="show('simulate')">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:6px;height:6px;border-radius:50%;background:#F43F5E;animation:pulse 1.5s infinite"></div>
+              <span style="font-size:12px;font-weight:600;color:#F43F5E">Urgent — response timer active</span>
+            </div>
+            <div style="font-size:11px;color:#64748B;margin-top:4px">Marcus (Account Mgr): "Client wants 2 new features by Friday — I told them yes!" · 22 min unanswered</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="level-ring">
+              <div class="ring-num">2</div>
+              <div class="ring-lbl">Level</div>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:500;color:#E2E8F0;margin-bottom:4px">Graduate Analyst · 340 / 500 XP</div>
+              <div class="xp-track" style="height:5px"><div class="xp-fill" style="width:68%;background:#00C2A8"></div></div>
+              <div style="font-size:10px;color:#4A5568;margin-top:3px">160 XP to unlock Level 3 — Associate Coordinator</div>
+            </div>
+          </div>
+          <div class="stat-grid">
+            <div class="stat"><div class="stat-val" style="color:#00C2A8">84</div><div class="stat-lbl">Performance Index</div><div class="bar-wrap"><div class="bar-fill" style="width:84%;background:#00C2A8"></div></div></div>
+            <div class="stat"><div class="stat-val" style="color:#4ADE80">88%</div><div class="stat-lbl">Reliability</div><div class="bar-wrap"><div class="bar-fill" style="width:88%;background:#4ADE80"></div></div></div>
+            <div class="stat"><div class="stat-val" style="color:#818CF8">79%</div><div class="stat-lbl">Decision quality</div><div class="bar-wrap"><div class="bar-fill" style="width:79%;background:#818CF8"></div></div></div>
+            <div class="stat"><div class="stat-val" style="color:#F59E0B" id="resp-stat">74%</div><div class="stat-lbl">Responsiveness</div><div class="bar-wrap"><div class="bar-fill" id="resp-bar" style="width:74%;background:#F59E0B"></div></div></div>
+          </div>
+          <div style="font-size:10px;color:#2D3748;font-style:italic;padding:4px 0">James H (Manager): "Good standup this morning. The Marcus email has been sitting 22 minutes — that will show in your responsiveness score."</div>
+        </div>
+      </div>
+
+      <div id="panel-inbox" class="panel">
+        <div class="panel-hdr"><span class="panel-title">Inbox</span><span class="panel-sub">3 unread</span></div>
+        <div class="panel-body">
+          <div class="msg-row urgent" onclick="show('simulate')">
+            <div class="avatar av-marcus">MA</div>
+            <div class="msg-body">
+              <div style="display:flex;justify-content:space-between"><span class="msg-from">Marcus Adeyemi · Account Mgr</span><span class="msg-time">09:02</span></div>
+              <div class="msg-subj">Client wants 2 new features by Friday — I told them yes!</div>
+              <div style="margin-top:4px"><span class="badge badge-red">Needs response · 22 min</span></div>
+            </div>
+          </div>
+          <div class="msg-row unread">
+            <div class="avatar av-boss">JH</div>
+            <div class="msg-body">
+              <div style="display:flex;justify-content:space-between"><span class="msg-from">James Hargreaves · Manager</span><span class="msg-time">09:00</span></div>
+              <div class="msg-subj">Morning — here are your priorities for today</div>
+            </div>
+          </div>
+          <div class="msg-row unread">
+            <div class="avatar av-sarah">SE</div>
+            <div class="msg-body">
+              <div style="display:flex;justify-content:space-between"><span class="msg-from">Sarah Edwards · Lead Dev</span><span class="msg-time">08:55</span></div>
+              <div class="msg-subj">Pipeline is broken — do NOT commit to anything new</div>
+            </div>
+          </div>
+          <div class="msg-row">
+            <div class="avatar av-client">CL</div>
+            <div class="msg-body">
+              <div style="display:flex;justify-content:space-between"><span class="msg-from">Priya Shah · Client</span><span class="msg-time">Yesterday</span></div>
+              <div class="msg-subj">When can we see the updated dashboard?</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-simulate" class="panel">
+        <div class="panel-hdr">
+          <span class="panel-title">Live scenario — scope creep decision</span>
+          <span class="panel-sub" style="color:#F43F5E">Timer: <span id="timer-display">22:14</span> overdue</span>
+        </div>
+        <div class="panel-body">
+          <div style="background:#0D1117;border:1px solid #1E2535;border-left:3px solid #4ADE80;border-radius:0 8px 8px 0;padding:12px 14px;font-size:12px;color:#64748B;line-height:1.7">
+            <div style="font-size:11px;font-weight:600;color:#4ADE80;margin-bottom:6px">Marcus Adeyemi · Account Manager · 09:02</div>
+            Hey! Just off the phone with Priya. She wants two things added before Friday: a user cohort chart AND a CSV export button. I told her no problem! Can you just ask Sarah to build these? Should be done Thursday EOD right?
+          </div>
+          <div class="decision-box" id="decision-area">
+            <div class="decision-prompt">How do you respond to Marcus?</div>
+            <div class="d-opt" id="opt-a" onclick="decide('good')">A. "Marcus — those are reasonable asks but I need to check with Sarah on capacity before we commit. She's currently fixing a broken pipeline. I'll confirm a realistic timeline within the hour."</div>
+            <div class="d-opt" id="opt-b" onclick="decide('medium')">B. "OK — I'll forward this to Sarah and see if she can fit it in."</div>
+            <div class="d-opt" id="opt-c" onclick="decide('bad')">C. "Marcus, you can't keep promising things without checking with the team first."</div>
+          </div>
+          <div id="consequence" style="display:none"></div>
+          <div style="background:#0D1117;border:1px solid #1E2535;border-left:3px solid #F87171;border-radius:0 8px 8px 0;padding:12px 14px;font-size:12px;color:#64748B;line-height:1.7">
+            <div style="font-size:11px;font-weight:600;color:#F87171;margin-bottom:6px">Sarah Edwards · Lead Dev · 08:55</div>
+            For reference — pipeline broke at 07:30. I'm still diagnosing. Do NOT tell anyone we can take new work right now.
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-kpis" class="panel">
+        <div class="panel-hdr"><span class="panel-title">My performance index</span><span class="panel-sub">Day 2 · Live</span></div>
+        <div class="panel-body">
+          <div class="card" style="display:flex;align-items:center;gap:14px">
+            <div class="level-ring" style="width:72px;height:72px">
+              <div class="ring-num" id="pi-big">84</div>
+              <div class="ring-lbl">PI Score</div>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:500;color:#E2E8F0;margin-bottom:6px">Overall Performance Index</div>
+              <div class="xp-track" style="height:5px"><div class="xp-fill" id="pi-bar" style="width:84%;background:#00C2A8"></div></div>
+              <div style="font-size:10px;color:#4A5568;margin-top:4px">Target 85 to unlock Level 3 · 1 point to go</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div id="kpi-reliability" class="card"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:#64748B">Reliability · 25% weight</span><span style="font-size:14px;font-weight:700;color:#4ADE80">88%</span></div><div class="bar-wrap" style="height:4px"><div class="bar-fill" style="width:88%;background:#4ADE80"></div></div><div style="font-size:10px;color:#2D3748;margin-top:4px">Tasks completed on time vs total assigned</div></div>
+            <div id="kpi-quality" class="card"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:#64748B">Decision quality · 30% weight</span><span style="font-size:14px;font-weight:700;color:#818CF8" id="qual-val">79%</span></div><div class="bar-wrap" style="height:4px"><div class="bar-fill" id="qual-bar" style="width:79%;background:#818CF8"></div></div><div style="font-size:10px;color:#2D3748;margin-top:4px">Quality of decisions made under workplace pressure</div></div>
+            <div id="kpi-resp" class="card"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:#64748B">Responsiveness · 20% weight</span><span style="font-size:14px;font-weight:700;color:#F59E0B" id="resp-val">74%</span></div><div class="bar-wrap" style="height:4px"><div class="bar-fill" id="resp-bar2" style="width:74%;background:#F59E0B"></div></div><div style="font-size:10px;color:#2D3748;margin-top:4px">Speed of response to urgent messages and tasks</div></div>
+            <div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:#64748B">Scope control · 10% weight</span><span style="font-size:14px;font-weight:700;color:#F43F5E" id="scope-val">—</span></div><div class="bar-wrap" style="height:4px"><div class="bar-fill" id="scope-bar" style="width:0%;background:#F43F5E"></div></div><div style="font-size:10px;color:#2D3748;margin-top:4px">Pending Marcus decision outcome</div></div>
+          </div>
+          <button onclick="sendPrompt('What do I need to do to unlock Level 3 on Praxis?')" style="width:100%;padding:9px;background:rgba(0,194,168,.08);border:1px solid #004D43;border-radius:8px;color:#00C2A8;font-size:11px;font-weight:500;cursor:pointer;text-align:left;padding-left:14px">What do I need to reach Level 3? ↗</button>
+        </div>
+      </div>
+
+      <div id="panel-segments" class="panel">
+        <div class="panel-hdr"><span class="panel-title">Platform segments</span><span class="panel-sub">8 customer types · 1 engine</span></div>
+        <div class="panel-body">
+          <div style="font-size:11px;color:#4A5568;line-height:1.6;padding:2px 0 4px">Praxis serves every stage of professional life. One simulation engine — different scenarios, seniority tracks, and admin portals for each segment.</div>
+          <div class="segment-grid">
+            <div class="seg-card" onclick="sendPrompt('Tell me more about how Praxis serves universities')"><div class="seg-num" style="color:#00C2A8">01</div><div class="seg-name">Universities</div><div class="seg-sub">Employability outcomes · annual licence</div></div>
+            <div class="seg-card" onclick="sendPrompt('How does the individual subscription tier work on Praxis?')"><div class="seg-num" style="color:#00C2A8">02</div><div class="seg-name">Individuals</div><div class="seg-sub">Flexible schedule · £29–£99/mo</div></div>
+            <div class="seg-card" onclick="sendPrompt('How does Praxis work for recruitment platforms?')"><div class="seg-num" style="color:#F59E0B">03</div><div class="seg-name">Recruitment platforms</div><div class="seg-sub">API access · pre-vetted pipeline</div></div>
+            <div class="seg-card" onclick="sendPrompt('Tell me about the talent hunt and headhunting segment on Praxis')"><div class="seg-num" style="color:#F59E0B">04</div><div class="seg-name">Talent & headhunt</div><div class="seg-sub">Verified performance data · feed</div></div>
+            <div class="seg-card" onclick="sendPrompt('How does Praxis work for corporate graduate schemes?')"><div class="seg-num" style="color:#818CF8">05</div><div class="seg-name">Graduate schemes</div><div class="seg-sub">Custom org · branded simulation</div></div>
+            <div class="seg-card" onclick="sendPrompt('How can L&D departments use Praxis for continuous development?')"><div class="seg-num" style="color:#818CF8">06</div><div class="seg-name">L&D departments</div><div class="seg-sub">Continuous development tracks</div></div>
+            <div class="seg-card" onclick="sendPrompt('How does Praxis handle succession planning scenarios?')"><div class="seg-num" style="color:#F43F5E">07</div><div class="seg-name">Succession planning</div><div class="seg-sub">Executive readiness · Levels 6–8</div></div>
+            <div class="seg-card" onclick="sendPrompt('Tell me about business scenario and crisis simulation on Praxis')"><div class="seg-num" style="color:#F43F5E">08</div><div class="seg-name">Business scenarios</div><div class="seg-sub">Crisis simulation · board-level</div></div>
+          </div>
+          <div style="font-size:10px;color:#2D3748;text-align:center;padding:4px 0">Segments 01–02 live now · 03–06 Phase 2 · 07–08 Phase 3</div>
+        </div>
+      </div>
+
+      <div id="panel-portfolio" class="panel">
+        <div class="panel-hdr"><span class="panel-title">Experience portfolio</span><span class="panel-sub">Shareable · employer-verified</span></div>
+        <div class="panel-body">
+          <div class="card card-teal">
+            <div style="display:flex;align-items:flex-start;gap:12px">
+              <div style="width:44px;height:44px;border-radius:8px;background:#004D43;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#00C2A8;flex-shrink:0">DE</div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600;color:#E2E8F0">Data Engineering · Level 2</div>
+                <div style="font-size:11px;color:#4A5568;margin-top:2px">Graduate Analyst · Nexus Digital · April 2026</div>
+                <div style="display:flex;gap:6px;margin-top:6px"><span class="badge badge-teal">PI Score: 84</span><span class="badge badge-teal">88% Reliability</span><span class="badge badge-teal">340 XP</span></div>
+              </div>
+              <div style="font-size:24px;font-weight:700;color:#00C2A8;text-align:right;flex-shrink:0">84<div style="font-size:9px;color:#004D43;font-weight:400">PI Score</div></div>
+            </div>
+            <div style="margin-top:12px;padding-top:10px;border-top:1px solid #004D43">
+              <div style="font-size:10px;color:#004D43;font-weight:500;margin-bottom:6px">VERIFIED ACHIEVEMENTS</div>
+              <div style="font-size:11px;color:#4A5568;line-height:1.7">✓ Handled scope creep professionally — stakeholder management score +12%<br>✓ 88% task reliability across 14 simulation tasks<br>✓ 5 good decisions scored under workplace time pressure</div>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px">
+              <div style="flex:1;background:#0A0A0F;border-radius:6px;padding:8px 10px;font-size:10px;color:#2D3748">praxis-platform.com/portfolio/PRX-2026-4821</div>
+              <button style="padding:7px 12px;background:#00C2A8;color:#0A0A0F;border:none;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer">Copy link</button>
+              <button style="padding:7px 12px;background:#0A66C2;color:#fff;border:none;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer">LinkedIn</button>
+            </div>
+          </div>
+          <div class="card" style="opacity:.4;text-align:center;padding:20px">
+            <div style="font-size:12px;color:#4A5568">Level 3 certificate unlocks at 500 XP · 160 XP to go</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-jobs" class="panel">
+        <div class="panel-hdr"><span class="panel-title">Job board</span><span class="panel-sub">5 orgs · 30 open roles</span></div>
+        <div class="panel-body">
+          <div style="background:#1A2F1A;border:1px solid #166534;border-radius:8px;padding:10px 12px;font-size:11px;color:#4ADE80">You are eligible for 4 roles based on your current level and PI score.</div>
+          <div class="task-card">
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:500;color:#E2E8F0">Data Analyst — Risk & Compliance</div>
+              <div style="font-size:11px;color:#4A5568;margin-top:2px">GlobalBank Advisory · Finance · Large</div>
+              <div style="display:flex;gap:6px;margin-top:6px"><span class="badge badge-teal">Min Level 2</span><span class="badge badge-grey">Min PI 75</span><span class="badge badge-amber">High standards culture</span></div>
+            </div>
+            <button style="padding:7px 14px;background:#00C2A8;color:#0A0A0F;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0">Apply</button>
+          </div>
+          <div class="task-card">
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:500;color:#E2E8F0">Junior Data Analyst</div>
+              <div style="font-size:11px;color:#4A5568;margin-top:2px">Nexus Digital · Technology · Startup</div>
+              <div style="display:flex;gap:6px;margin-top:6px"><span class="badge badge-teal">Min Level 1</span><span class="badge badge-grey">Min PI 65</span><span class="badge badge-red">Fast-paced</span></div>
+            </div>
+            <button style="padding:7px 14px;background:#004D43;color:#00C2A8;border:1px solid #004D43;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;flex-shrink:0">Applied ✓</button>
+          </div>
+          <div class="task-card" style="opacity:.45">
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:500;color:#64748B">Supply Chain Data Analyst</div>
+              <div style="font-size:11px;color:#2D3748;margin-top:2px">Meridian FMCG · Level 3 required · PI 76+</div>
+            </div>
+            <div style="font-size:10px;color:#2D3748;text-align:right;flex-shrink:0">Unlock at<br>Level 3</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>
+
+<script>
+const panels=['dashboard','inbox','simulate','kpis','segments','portfolio','jobs'];
+const navItems=document.querySelectorAll('.nav-item');
+function show(id){
+  panels.forEach(p=>{const el=document.getElementById('panel-'+p);if(el)el.classList.toggle('active',p===id)});
+  navItems.forEach(n=>n.classList.toggle('active',n.textContent.trim().toLowerCase().startsWith(id==='segments'?'all':id==='simulate'?'sim':id)));
+}
+let decided=false,sec=22*60+14;
+setInterval(()=>{
+  if(!decided){sec++;const m=Math.floor(sec/60),s=sec%60;const el=document.getElementById('timer-display');if(el)el.textContent=m+':'+(s<10?'0':'')+s+' overdue';}
+},1000);
+let h=9,m=14;
+setInterval(()=>{m++;if(m>=60){m=0;h++;}const el=document.getElementById('tb-clock');if(el)el.textContent=(h<10?'0':'')+h+':'+(m<10?'0':'')+m+' · Day 2';},1000);
+function decide(q){
+  if(decided)return;decided=true;
+  const a=document.getElementById('opt-a'),b=document.getElementById('opt-b'),c=document.getElementById('opt-c'),con=document.getElementById('consequence');
+  const el=document.getElementById('timer-display');if(el)el.textContent='Resolved';
+  if(q==='good'){
+    a.classList.add('good');
+    con.innerHTML='<div class="consequence con-good">+15 XP · Scope control +18% · Responsiveness penalty cleared · Manager comment: "Good stakeholder management — you checked capacity before committing."</div>';
+    updateKPIs(91,88,85,88,89);
+  }else if(q==='medium'){
+    b.classList.add('bad');
+    con.innerHTML='<div class="consequence con-bad">Sarah: "I literally told you we have a broken pipeline. Why did you agree to this?" — Scope control -20% · Team morale -10%</div>';
+    updateKPIs(72,68,55,25,63);
+  }else{
+    c.classList.add('bad');
+    con.innerHTML='<div class="consequence con-bad">Marcus: "Wow. I was just doing my job." — Communication score -18% · Manager flags tone in next 1:1</div>';
+    updateKPIs(74,72,58,40,62);
+  }
+  con.style.display='block';
+}
+function updateKPIs(rel,qual,resp,scope,pi){
+  const pib=document.getElementById('pi-bar');if(pib)pib.style.width=pi+'%';
+  const pibi=document.getElementById('pi-big');if(pibi)pibi.textContent=pi;
+  const qv=document.getElementById('qual-val');if(qv)qv.textContent=qual+'%';
+  const qb=document.getElementById('qual-bar');if(qb)qb.style.width=qual+'%';
+  const rv=document.getElementById('resp-val');if(rv)rv.textContent=resp+'%';
+  const rb=document.getElementById('resp-bar2');if(rb)rb.style.width=resp+'%';
+  const rb1=document.getElementById('resp-bar');if(rb1)rb1.style.width=resp+'%';
+  const rs=document.getElementById('resp-stat');if(rs)rs.textContent=resp+'%';
+  const sv=document.getElementById('scope-val');if(sv)sv.textContent=scope+'%';
+  const sb=document.getElementById('scope-bar');if(sb)sb.style.width=scope+'%';
+  const xp=document.getElementById('xp-bar');if(xp)xp.style.width=Math.min(100,Math.round(68+(pi-84)*3))+'%';
+}
+</script>

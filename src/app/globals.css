@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ──────────────────────────────────────────── */
+:root {
+  --esp-navy:       #1F4E79;
+  --esp-mid:        #2E74B5;
+  --esp-light:      #DEEAF1;
+  --esp-pale:       #EBF3FB;
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  /* Sim clock speed: 1 real second = N sim minutes */
+  --sim-speed: 2;
+}
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;       /* 14px base for app UI */
+  line-height: 1.5;
+  color: #0F172A;
+  background: #F8FAFC;
+  min-height: 100dvh;
+}
+
+/* ── Typography ─────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  color: #0F172A;
+}
+
+a {
+  color: var(--esp-navy);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Scrollbars ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* ── Form elements ──────────────────────────────────────────── */
+input, select, textarea {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+  width: 100%;
+  border: 0.5px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  color: #0F172A;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--esp-navy);
+  box-shadow: 0 0 0 3px rgba(31, 78, 121, 0.08);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94A3B8;
+}
+
+button {
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+/* ── Utility classes ────────────────────────────────────────── */
+
+/* Card */
+.esp-card {
+  background: #fff;
+  border: 0.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+/* Pill badge */
+.esp-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.esp-badge-navy   { background: #EBF3FB; color: #1F4E79; }
+.esp-badge-green  { background: #DCFCE7; color: #166534; }
+.esp-badge-amber  { background: #FEF9C3; color: #854D0E; }
+.esp-badge-red    { background: #FEE2E2; color: #991B1B; }
+.esp-badge-purple { background: #EEEDFE; color: #3C3489; }
+.esp-badge-grey   { background: #F1F5F9; color: #64748B; }
+
+/* KPI bar */
+.esp-bar-track {
+  height: 4px;
+  background: #E2E8F0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.esp-bar-fill {
+  height: 4px;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* Urgency indicator */
+.esp-urgent {
+  border-left: 3px solid #DC2626 !important;
+}
+.esp-unread {
+  border-left: 3px solid var(--esp-navy) !important;
+}
+
+/* Fade-in for new content */
+@keyframes esp-fadein {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.esp-fadein {
+  animation: esp-fadein 0.2s ease;
+}
+
+/* Pulse for urgent items */
+@keyframes esp-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+.esp-pulse {
+  animation: esp-pulse 1.8s ease-in-out infinite;
+}
+
+/* ── Nav active state ───────────────────────────────────────── */
+.esp-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 0.8125rem;
+  color: #64748B;
+  cursor: pointer;
+  border-right: 2px solid transparent;
+  transition: all 0.12s;
+  text-decoration: none;
+}
+.esp-nav-item:hover {
+  background: #fff;
+  color: #0F172A;
+  text-decoration: none;
+}
+.esp-nav-item.active {
+  background: #fff;
+  color: var(--esp-navy);
+  font-weight: 500;
+  border-right-color: var(--esp-navy);
+}
+
+/* ── Top bar ────────────────────────────────────────────────── */
+.esp-topbar {
+  height: 48px;
+  background: var(--esp-navy);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Loading skeleton ───────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.esp-skeleton {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+
+/* ── Toast notifications ────────────────────────────────────── */
+.esp-toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.esp-toast {
+  pointer-events: all;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  animation: esp-fadein 0.2s ease;
+  max-width: 320px;
+}
+.esp-toast-success { background: #166534; color: #fff; }
+.esp-toast-error   { background: #991B1B; color: #fff; }
+.esp-toast-info    { background: var(--esp-navy); color: #fff; }
+.esp-toast-kpi     { background: #0F172A; color: #fff; }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .esp-sidebar { display: none; }
+  .esp-mobile-only { display: flex !important; }
+}
