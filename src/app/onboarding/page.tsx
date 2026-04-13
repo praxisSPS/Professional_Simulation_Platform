@@ -16,10 +16,10 @@ const CAREER_PATHS = [
 
 const SENIORITY_LEVELS = [
   { id: 'intern',         label: 'Intern',          desc: 'First professional experience, learning fundamentals',   level: 1 },
-  { id: 'junior',         label: 'Junior',           desc: '0–2 years, building core skills',                       level: 2 },
-  { id: 'intermediate',   label: 'Intermediate',     desc: '2–5 years, working independently on complex tasks',      level: 3 },
-  { id: 'manager',        label: 'Manager',          desc: '5–8 years, leading teams and projects',                 level: 4 },
-  { id: 'senior_manager', label: 'Senior Manager',   desc: '8–12 years, cross-functional leadership',               level: 5 },
+  { id: 'junior',         label: 'Junior',           desc: '0-2 years, building core skills',                       level: 2 },
+  { id: 'intermediate',   label: 'Intermediate',     desc: '2-5 years, working independently on complex tasks',      level: 3 },
+  { id: 'manager',        label: 'Manager',          desc: '5-8 years, leading teams and projects',                 level: 4 },
+  { id: 'senior_manager', label: 'Senior Manager',   desc: '8-12 years, cross-functional leadership',               level: 5 },
   { id: 'executive',      label: 'Executive / VP',   desc: '12+ years, strategic ownership and P&L responsibility', level: 6 },
   { id: 'c_suite',        label: 'C-Suite',          desc: 'Board-level leadership and organisational strategy',     level: 7 },
 ]
@@ -32,15 +32,15 @@ const QUESTIONS: Record<string, any[]> = {
   data_engineering: [
     { id:'de1', type:'mcq', q:'A stakeholder asks you to pull numbers from the database for a board meeting in 2 hours. You notice data inconsistencies. What do you do?', opts:[{l:'Pull what you can and send it, noting it is unverified',v:'a',p:2},{l:'Flag the inconsistencies immediately and agree a realistic scope for 2 hours',v:'b',p:4},{l:'Spend the full 2 hours cleaning the data before sending anything',v:'c',p:1},{l:'Tell them it cannot be done in 2 hours',v:'d',p:0}] },
     { id:'de2', type:'mcq', q:'Which best describes a data pipeline?', opts:[{l:'A chart showing data flow between departments',v:'a',p:0},{l:'An automated sequence that extracts, transforms and loads data between systems',v:'b',p:4},{l:'A database schema design document',v:'c',p:1},{l:'A real-time KPI dashboard',v:'d',p:1}] },
-    { id:'de3', type:'scenario', q:'Scenario: Your pipeline fails at 3am Monday. Your manager asks at 7am why the weekly report is missing. Another team changed the schema with no notice. How do you respond?', opts:[{l:'Apologise and say you are investigating, without mentioning the other team',v:'a',p:2},{l:'Explain what failed, why, what you are doing to fix it, and a realistic ETA — without blaming anyone',v:'b',p:4},{l:'Tell your manager the other team broke it',v:'c',p:0},{l:'Fix it silently and send the report without explanation',v:'d',p:1}] },
+    { id:'de3', type:'scenario', q:'Scenario: Your pipeline fails at 3am Monday. Your manager asks at 7am why the weekly report is missing. Another team changed the schema with no notice. How do you respond?', opts:[{l:'Apologise and say you are investigating, without mentioning the other team',v:'a',p:2},{l:'Explain what failed, why, what you are doing to fix it, and a realistic ETA - without blaming anyone',v:'b',p:4},{l:'Tell your manager the other team broke it',v:'c',p:0},{l:'Fix it silently and send the report without explanation',v:'d',p:1}] },
   ],
   product_management: [
     { id:'pm1', type:'mcq', q:'A developer estimates a feature takes 3 weeks. Sales has promised it in 1 week. What is your first action?', opts:[{l:'Tell the developer to work faster',v:'a',p:0},{l:'Tell sales they overpromised',v:'b',p:0},{l:'Facilitate a conversation to agree realistic scope or phased delivery',v:'c',p:4},{l:'Deliver a reduced version in 1 week without telling the client',v:'d',p:1}] },
-    { id:'pm2', type:'scenario', q:'Scenario: 3 features are all marked urgent by different stakeholders. You only have capacity for 1 this sprint. How do you decide?', opts:[{l:'Build what the most senior stakeholder wants',v:'a',p:1},{l:'Score each by impact, effort, and strategic alignment — present the decision with data',v:'b',p:4},{l:'Ask the team to vote',v:'c',p:1},{l:'Build all three partially',v:'d',p:0}] },
+    { id:'pm2', type:'scenario', q:'Scenario: 3 features are all marked urgent by different stakeholders. You only have capacity for 1 this sprint. How do you decide?', opts:[{l:'Build what the most senior stakeholder wants',v:'a',p:1},{l:'Score each by impact, effort, and strategic alignment - present the decision with data',v:'b',p:4},{l:'Ask the team to vote',v:'c',p:1},{l:'Build all three partially',v:'d',p:0}] },
     { id:'pm3', type:'mcq', q:'What is a north star metric?', opts:[{l:'The KPI that best reflects the core value your product delivers to users',v:'a',p:4},{l:'The monthly revenue target set by the CEO',v:'b',p:0},{l:'The metric used to benchmark against competitors',v:'c',p:1},{l:'The KPI with the highest growth rate',v:'d',p:1}] },
   ],
   project_management: [
-    { id:'pj1', type:'mcq', q:'A client asks to add a significant new feature to a project that is 80% complete. What is your first step?', opts:[{l:'Say yes immediately to maintain the relationship',v:'a',p:0},{l:'Say no — the scope is fixed',v:'b',p:1},{l:'Acknowledge, assess the impact on timeline and budget, and present options',v:'c',p:4},{l:'Add it to the backlog for review after delivery',v:'d',p:2}] },
+    { id:'pj1', type:'mcq', q:'A client asks to add a significant new feature to a project that is 80% complete. What is your first step?', opts:[{l:'Say yes immediately to maintain the relationship',v:'a',p:0},{l:'Say no - the scope is fixed',v:'b',p:1},{l:'Acknowledge, assess the impact on timeline and budget, and present options',v:'c',p:4},{l:'Add it to the backlog for review after delivery',v:'d',p:2}] },
     { id:'pj2', type:'scenario', q:'Scenario: Your project is 2 weeks behind. Your sponsor expects a completed demo in 3 weeks for a board presentation. What do you do?', opts:[{l:'Work weekends to catch up and say nothing',v:'a',p:1},{l:'Immediately escalate with a clear picture of the delay, its cause, and three options with trade-offs',v:'b',p:4},{l:'Reduce scope without telling anyone',v:'c',p:0},{l:'Push the demo date unilaterally',v:'d',p:0}] },
     { id:'pj3', type:'mcq', q:'What is a RAID log?', opts:[{l:'Tracking Risks, Assumptions, Issues and Dependencies',v:'a',p:4},{l:'Recording daily standup minutes',v:'b',p:0},{l:'Monitoring budget variance',v:'c',p:1},{l:'Logging IT security incidents',v:'d',p:0}] },
   ],
@@ -50,14 +50,14 @@ const QUESTIONS: Record<string, any[]> = {
     { id:'dm3', type:'mcq', q:'What is the primary purpose of A/B testing?', opts:[{l:'Isolate a single variable and measure its impact on a specific outcome',v:'a',p:4},{l:'Test two different products simultaneously',v:'b',p:0},{l:'Compare performance across two channels',v:'c',p:1},{l:'Benchmark against competitors',v:'d',p:1}] },
   ],
   reliability_engineering: [
-    { id:'re1', type:'mcq', q:'A critical bearing fails on a running production line. No spare is on site. The line costs £4,200/hour in lost production. What is your first action?', opts:[{l:'Stop the line immediately, raise a work order, and inform your supervisor',v:'a',p:4},{l:'Keep running and monitor closely — the bearing might last the shift',v:'b',p:2},{l:'Attempt to replace the bearing yourself during a short break',v:'c',p:0},{l:'Say nothing until end-of-shift handover',v:'d',p:0}] },
-    { id:'re2', type:'mcq', q:'What does OEE measure?', opts:[{l:'Availability × Performance × Quality — the overall effectiveness of a production asset',v:'a',p:4},{l:'The total output of a production line per shift',v:'b',p:1},{l:'Mean time between equipment failures',v:'c',p:1},{l:'The cost of maintenance per unit produced',v:'d',p:0}] },
-    { id:'re3', type:'scenario', q:'Scenario: Your PM tasks on Pasteuriser 1 are 1 week overdue. Production cannot give you access until tomorrow. The tasks take 90 minutes but tomorrow's maintenance window is only 30 minutes. What do you do?', opts:[{l:'Rush both tasks in 30 minutes — better than nothing',v:'a',p:0},{l:'Notify your lead, negotiate an extended window with production today, giving them time to plan',v:'b',p:4},{l:'Do one task in 30 minutes and defer the second another week',v:'c',p:2},{l:'Skip both tasks — production schedule takes priority',v:'d',p:0}] },
+    { id:'re1', type:'mcq', q:'A critical bearing fails on a running line. No spare on site. Line costs 4200/hr in lost production. What is your first action?', opts:[{l:'Stop the line immediately, raise a work order, and inform your supervisor',v:'a',p:4},{l:'Keep running and monitor closely - the bearing might last the shift',v:'b',p:2},{l:'Attempt to replace the bearing yourself during a short break',v:'c',p:0},{l:'Say nothing until end-of-shift handover',v:'d',p:0}] },
+    { id:'re2', type:'mcq', q:'What does OEE measure?', opts:[{l:'Availability x Performance x Quality - overall effectiveness of a production asset',v:'a',p:4},{l:'The total output of a production line per shift',v:'b',p:1},{l:'Mean time between equipment failures',v:'c',p:1},{l:'The cost of maintenance per unit produced',v:'d',p:0}] },
+    { id:'re3', type:'scenario', q:'Scenario: Your PM tasks on Pasteuriser 1 are 1 week overdue. Production can only offer 30 mins tomorrow but each task takes 45 mins. What do you do?', opts:[{l:'Rush both tasks in 30 minutes - better than nothing',v:'a',p:0},{l:'Notify your lead, negotiate an extended window with production today giving them time to plan',v:'b',p:4},{l:'Do one task in 30 minutes and defer the second another week',v:'c',p:2},{l:'Skip both tasks - production schedule takes priority',v:'d',p:0}] },
   ],
-  financial_analysis: [
-    { id:'fa1', type:'mcq', q:'Revenue is up 15% YoY but net profit has fallen. What is your first area of investigation?', opts:[{l:'Cost of goods sold and operating expenses — looking for margin erosion',v:'a',p:4},{l:'Tax rate changes',v:'b',p:1},{l:'Revenue recognition timing',v:'c',p:2},{l:'Headcount changes',v:'d',p:1}] },
-    { id:'fa2', type:'scenario', q:'Scenario: A business leader needs three financial scenarios for a board meeting tomorrow. You have 12 assumptions and 4 hours. What do you prioritise?', opts:[{l:'Build all three fully, even if it takes all night',v:'a',p:1},{l:'Identify 3–4 most sensitive assumptions, build clean scenario logic, present with explicit caveats',v:'b',p:4},{l:'Tell her the timeline is unrealistic',v:'c',p:0},{l:'Build one scenario well and note others are directional only',v:'d',p:2}] },
-    { id:'fa3', type:'mcq', q:'What does EBITDA measure?', opts:[{l:'Earnings Before Interest, Tax, Depreciation and Amortisation — proxy for operating cash generation',v:'a',p:4},{l:'Total revenue minus total costs',v:'b',p:1},{l:'Net profit after all deductions',v:'c',p:0},{l:'Gross profit before operating expenses',v:'d',p:1}] },
+    financial_analysis: [
+    { id:'fa1', type:'mcq', q:'Revenue is up 15% YoY but net profit has fallen. What is your first area of investigation?', opts:[{l:'Cost of goods sold and operating expenses - looking for margin erosion',v:'a',p:4},{l:'Tax rate changes',v:'b',p:1},{l:'Revenue recognition timing',v:'c',p:2},{l:'Headcount changes',v:'d',p:1}] },
+    { id:'fa2', type:'scenario', q:'Scenario: A business leader needs three financial scenarios for a board meeting tomorrow. You have 12 assumptions and 4 hours. What do you prioritise?', opts:[{l:'Build all three fully, even if it takes all night',v:'a',p:1},{l:'Identify 3-4 most sensitive assumptions, build clean scenario logic, present with explicit caveats',v:'b',p:4},{l:'Tell her the timeline is unrealistic',v:'c',p:0},{l:'Build one scenario well and note others are directional only',v:'d',p:2}] },
+    { id:'fa3', type:'mcq', q:'What does EBITDA measure?', opts:[{l:'Earnings Before Interest, Tax, Depreciation and Amortisation - proxy for operating cash generation',v:'a',p:4},{l:'Total revenue minus total costs',v:'b',p:1},{l:'Net profit after all deductions',v:'c',p:0},{l:'Gross profit before operating expenses',v:'d',p:1}] },
   ],
 }
 
@@ -115,7 +115,7 @@ export default function OnboardingPage() {
   const questions = careerPath ? (QUESTIONS[careerPath] ?? []) : []
   const needsOrgCode = customerType === 'organisation' || customerType === 'university'
 
-  // Live org code lookup — triggers after 500ms pause in typing
+  // Live org code lookup - triggers after 500ms pause in typing
   useEffect(() => {
     if (!needsOrgCode || orgCode.length < 5) {
       setOrgLookup(null); setOrgError(''); return
@@ -250,13 +250,13 @@ export default function OnboardingPage() {
 
         {/* ── STEP 0: Account type ── */}
         {step === 0 && !showSuggestion && <>
-          <div style={S.eyebrow}>Step 1 of 6 — Account type</div>
+          <div style={S.eyebrow}>Step 1 of 6 - Account type</div>
           <div style={S.h1}>How are you using Praxis?</div>
           <div style={S.sub}>This determines how your profile, data, and content are configured.</div>
 
-          <TypeCard id="individual"    icon="👤" lbl="Individual"              desc="Developing my own career — self-paced, flexible schedule" />
-          <TypeCard id="university"    icon="🎓" lbl="University student"      desc="My university has a Praxis licence — I need an access code" />
-          <TypeCard id="organisation"  icon="🏢" lbl="Part of an organisation" desc="My employer is using Praxis — I have a company access code" />
+          <TypeCard id="individual"    icon="👤" lbl="Individual"              desc="Developing my own career - self-paced, flexible schedule" />
+          <TypeCard id="university"    icon="🎓" lbl="University student"      desc="My university has a Praxis licence - I need an access code" />
+          <TypeCard id="organisation"  icon="🏢" lbl="Part of an organisation" desc="My employer is using Praxis - I have a company access code" />
           <TypeCard id="recruitment"   icon="🔍" lbl="Recruitment platform"    desc="I am placing candidates and assessing talent" />
 
           {needsOrgCode && (
@@ -296,7 +296,7 @@ export default function OnboardingPage() {
 
         {/* ── STEP 1: Career path ── */}
         {step === 1 && <>
-          <div style={S.eyebrow}>Step 2 of 6 — Career path</div>
+          <div style={S.eyebrow}>Step 2 of 6 - Career path</div>
           <div style={S.h1}>Choose your career path</div>
           <div style={S.sub}>You will simulate real professional scenarios at Nexus Digital in your chosen field.</div>
 
@@ -324,9 +324,9 @@ export default function OnboardingPage() {
 
         {/* ── STEP 2: Seniority ── */}
         {step === 2 && <>
-          <div style={S.eyebrow}>Step 3 of 6 — Experience level</div>
+          <div style={S.eyebrow}>Step 3 of 6 - Experience level</div>
           <div style={S.h1}>Where are you in your career?</div>
-          <div style={S.sub}>Select your current level. A short calibration assessment follows — this personalises your simulation, it is not pass/fail.</div>
+          <div style={S.sub}>Select your current level. A short calibration assessment follows - this personalises your simulation, it is not pass/fail.</div>
 
           {SENIORITY_LEVELS.map(lv => (
             <div key={lv.id} onClick={() => setSeniority(lv.id)}
@@ -348,9 +348,9 @@ export default function OnboardingPage() {
 
         {/* ── STEP 3: CV upload ── */}
         {step === 3 && <>
-          <div style={S.eyebrow}>Step 4 of 6 — CV upload (optional)</div>
+          <div style={S.eyebrow}>Step 4 of 6 - CV upload (optional)</div>
           <div style={S.h1}>Upload your CV</div>
-          <div style={S.sub}>We use your CV as context to personalise your simulation scenarios. The calibration assessment still runs — your CV makes the experience more relevant, not decides your level.</div>
+          <div style={S.sub}>We use your CV as context to personalise your simulation scenarios. The calibration assessment still runs - your CV makes the experience more relevant, not decides your level.</div>
 
           <div onClick={() => fileRef.current?.click()}
             style={{ border:`2px dashed ${cvFile?'#00C2A8':'#2D3748'}`, borderRadius:12, padding:'28px', textAlign:'center', cursor:'pointer', background:cvFile?'rgba(0,194,168,0.05)':'#141420', marginBottom:16 }}>
@@ -358,7 +358,7 @@ export default function OnboardingPage() {
             {loading
               ? <div style={{ color:'#00C2A8', fontSize:13 }}>Parsing your CV...</div>
               : cvFile
-                ? <><div style={{ fontSize:22, marginBottom:6 }}>✓</div><div style={{ fontSize:13, color:'#00C2A8', fontWeight:500 }}>{cvFile.name}</div>{cvParsed && <div style={{ fontSize:11, color:'#4A5568', marginTop:4 }}>CV parsed — experience noted as context</div>}</>
+                ? <><div style={{ fontSize:22, marginBottom:6 }}>✓</div><div style={{ fontSize:13, color:'#00C2A8', fontWeight:500 }}>{cvFile.name}</div>{cvParsed && <div style={{ fontSize:11, color:'#4A5568', marginTop:4 }}>CV parsed - experience noted as context</div>}</>
                 : <><div style={{ fontSize:28, marginBottom:6 }}>📄</div><div style={{ fontSize:13, color:'#64748B' }}>Click to upload your CV</div><div style={{ fontSize:11, color:'#334155', marginTop:3 }}>PDF, DOC or DOCX · Max 5MB</div></>
             }
           </div>
@@ -371,9 +371,9 @@ export default function OnboardingPage() {
 
         {/* ── STEP 4: Assessment ── */}
         {step === 4 && !showSuggestion && <>
-          <div style={S.eyebrow}>Step 5 of 6 — Calibration assessment</div>
+          <div style={S.eyebrow}>Step 5 of 6 - Calibration assessment</div>
           <div style={S.h1}>Quick skills assessment</div>
-          <div style={S.sub}>3 questions — knowledge and real-world scenarios. Answer honestly for the most accurate calibration. Your answers help us set the right simulation difficulty for you.</div>
+          <div style={S.sub}>3 questions - knowledge and real-world scenarios. Answer honestly for the most accurate calibration. Your answers help us set the right simulation difficulty for you.</div>
 
           {questions.map((q: any, i: number) => (
             <div key={q.id} style={{ marginBottom:20 }}>
@@ -411,17 +411,17 @@ export default function OnboardingPage() {
 
         {/* ── SUGGESTION SCREEN: Assessment suggests different level ── */}
         {showSuggestion && step === 4 && <>
-          <div style={S.eyebrow}>Step 5 of 6 — Assessment result</div>
+          <div style={S.eyebrow}>Step 5 of 6 - Assessment result</div>
           <div style={S.h1}>We have a suggestion</div>
           <div style={S.sub}>
-            Based on your assessment answers, your responses align more closely with a different level than you selected. You choose — this is your profile.
+            Based on your assessment answers, your responses align more closely with a different level than you selected. You choose - this is your profile.
           </div>
 
           {/* Self-selected */}
           <div style={{ padding:'14px 16px', background:'#141420', border:'1px solid #2D3748', borderRadius:10, marginBottom:10 }}>
             <div style={{ fontSize:10, color:'#4A5568', marginBottom:4 }}>You selected</div>
             <div style={{ fontSize:14, fontWeight:600, color:'#E2E8F0' }}>
-              Level {SENIORITY_MAP[seniority]} — {SENIORITY_LEVELS.find(l => l.id === seniority)?.label}
+              Level {SENIORITY_MAP[seniority]} - {SENIORITY_LEVELS.find(l => l.id === seniority)?.label}
             </div>
             <div style={{ fontSize:11, color:'#334155', marginTop:2 }}>{SENIORITY_LEVELS.find(l => l.id === seniority)?.desc}</div>
           </div>
@@ -432,7 +432,7 @@ export default function OnboardingPage() {
               {suggestedLevel > (SENIORITY_MAP[seniority] ?? 2) ? '↑ Praxis suggests a higher level' : '↓ Praxis suggests a lower level'}
             </div>
             <div style={{ fontSize:14, fontWeight:600, color:'#00C2A8' }}>
-              Level {suggestedLevel} — {SENIORITY_LEVELS.find(l => l.level === suggestedLevel)?.label}
+              Level {suggestedLevel} - {SENIORITY_LEVELS.find(l => l.level === suggestedLevel)?.label}
             </div>
             <div style={{ fontSize:11, color:'#4A5568', marginTop:2 }}>{SENIORITY_LEVELS.find(l => l.level === suggestedLevel)?.desc}</div>
             <div style={{ fontSize:11, color:'#334155', marginTop:6, lineHeight:1.5 }}>
@@ -442,7 +442,7 @@ export default function OnboardingPage() {
             </div>
           </div>
 
-          <div style={{ fontSize:12, color:'#64748B', marginBottom:14 }}>Choose which level to start at — you can always progress through levels as you complete simulations.</div>
+          <div style={{ fontSize:12, color:'#64748B', marginBottom:14 }}>Choose which level to start at - you can always progress through levels as you complete simulations.</div>
 
           <div style={{ display:'flex', gap:10 }}>
             <button
@@ -469,7 +469,7 @@ export default function OnboardingPage() {
               You are all set, {userName}!
             </div>
             <div style={{ fontSize:13, color:'#64748B', lineHeight:1.65, marginBottom:22 }}>
-              Starting at <span style={{ color:'#00C2A8', fontWeight:600 }}>Level {finalLevel} — {SENIORITY_LEVELS.find(l => l.level === finalLevel)?.label}</span>. Your simulation scenarios are now calibrated for your experience level.
+              Starting at <span style={{ color:'#00C2A8', fontWeight:600 }}>Level {finalLevel} - {SENIORITY_LEVELS.find(l => l.level === finalLevel)?.label}</span>. Your simulation scenarios are now calibrated for your experience level.
             </div>
 
             <div style={{ background:'#141420', border:'1px solid #1E2535', borderRadius:12, padding:'14px 18px', marginBottom:18, textAlign:'left' }}>
@@ -479,7 +479,7 @@ export default function OnboardingPage() {
                 ...(memberId ? [['Organisation member ID', memberId]] : []),
                 ...(orgLookup ? [['Organisation', orgLookup.name]] : []),
                 ['Career path', CAREER_PATHS.find(p => p.id === careerPath)?.label ?? ''],
-                ['Starting level', `Level ${finalLevel} — ${SENIORITY_LEVELS.find(l => l.level === finalLevel)?.label}`],
+                ['Starting level', `Level ${finalLevel} - ${SENIORITY_LEVELS.find(l => l.level === finalLevel)?.label}`],
                 ['Account type', customerType],
               ].map(([k, v]) => (
                 <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #1E2535', fontSize:12 }}>
@@ -491,7 +491,7 @@ export default function OnboardingPage() {
 
             <div style={{ fontSize:11, color:'#334155', marginBottom:20, lineHeight:1.6 }}>
               {memberId
-                ? `Your organisation member ID (${memberId}) links your performance data to ${orgLookup?.name}. Your Praxis ID (${uniqueId}) is your personal portable identifier — share it with any employer.`
+                ? `Your organisation member ID (${memberId}) links your performance data to ${orgLookup?.name}. Your Praxis ID (${uniqueId}) is your personal portable identifier - share it with any employer.`
                 : `Your Praxis ID is your verified portable identifier. Share it with employers or organisations to link your verified performance portfolio.`
               }
             </div>
