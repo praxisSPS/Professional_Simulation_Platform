@@ -7,11 +7,12 @@ import { createClient } from '@/lib/supabase/client'
 type CustomerType = 'individual' | 'organisation' | 'university' | 'recruitment'
 
 const CAREER_PATHS = [
-  { id: 'data_engineering',   label: 'Data & AI Engineering',      icon: 'DE', desc: 'SQL, pipelines, stakeholder reporting, data storytelling',          color: '#1F4E79', bg: '#EBF3FB' },
-  { id: 'product_management', label: 'Product Management',         icon: 'PM', desc: 'Roadmaps, sprint planning, stakeholder management, prioritisation', color: '#166534', bg: '#DCFCE7' },
-  { id: 'project_management', label: 'Project Management',         icon: 'PJ', desc: 'Scope control, risk tracking, timelines, client communication',     color: '#7C3AED', bg: '#EEEDFE' },
-  { id: 'digital_marketing',  label: 'Digital Marketing & Growth', icon: 'DM', desc: 'Campaign analysis, channel optimisation, performance reporting',     color: '#854D0E', bg: '#FEF9C3' },
-  { id: 'financial_analysis', label: 'Financial Analysis',         icon: 'FA', desc: 'Variance analysis, modelling, FP&A, high-stakes decisions',         color: '#991B1B', bg: '#FEE2E2' },
+  { id: 'data_engineering',        label: 'Data & AI Engineering',                  icon: 'DE', desc: 'SQL, pipelines, stakeholder reporting, data storytelling',              color: '#1F4E79', bg: '#EBF3FB' },
+  { id: 'product_management',      label: 'Product Management',                     icon: 'PM', desc: 'Roadmaps, sprint planning, stakeholder management, prioritisation',     color: '#166534', bg: '#DCFCE7' },
+  { id: 'project_management',      label: 'Project Management',                     icon: 'PJ', desc: 'Scope control, risk tracking, timelines, client communication',         color: '#7C3AED', bg: '#EEEDFE' },
+  { id: 'digital_marketing',       label: 'Digital Marketing & Growth',             icon: 'DM', desc: 'Campaign analysis, channel optimisation, performance reporting',         color: '#854D0E', bg: '#FEF9C3' },
+  { id: 'financial_analysis',      label: 'Financial Analysis',                     icon: 'FA', desc: 'Variance analysis, modelling, FP&A, high-stakes decisions',             color: '#991B1B', bg: '#FEE2E2' },
+  { id: 'reliability_engineering', label: 'Reliability & Maintenance Engineering',  icon: 'RE', desc: 'OEE optimisation, MTBF analysis, root cause analysis, asset management', color: '#0F766E', bg: '#CCFBF1' },
 ]
 
 const SENIORITY_LEVELS = [
