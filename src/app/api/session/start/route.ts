@@ -212,3 +212,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ session, tasks_seeded: taskInserts.length })
 }
+
+export const dynamic = 'force-dynamic'
