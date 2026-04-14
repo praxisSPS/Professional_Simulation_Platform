@@ -265,3 +265,4 @@ async function getDayTasksAndBriefing(careerPath: string, simDay: number) {
     return null
   }
 }
+// build Tue 14 Apr 2026 21:44:55 BST
