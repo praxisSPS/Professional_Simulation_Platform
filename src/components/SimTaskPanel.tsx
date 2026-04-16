@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface TaskOption {
+  feedback?: string
   id: string
   text: string
   quality?: string

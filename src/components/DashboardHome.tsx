@@ -47,23 +47,7 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
       setSessionId(session.id)
       setClockInTime(new Date().toISOString())
       setClockedIn(true)
-      // Trigger Day 1 morning briefing
-      await fetch('/api/ai/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: session.id,
-          persona: 'boss',
-          scenario: 'morning_briefing',
-          context: {
-            userName: profile.full_name,
-            careerPath: profile.career_path,
-            currentLevel: profile.current_level,
-            dayNumber: 1,
-            organisationName: 'Nexus Digital',
-          },
-        }),
-      })
+
       ;(window as any).espToast?.('Clocked in — your AI coworkers have been notified.', 'success')
       router.refresh()
     } catch {
@@ -215,6 +199,30 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
       )}
 
       {/* Simulate CTA if not clocked in */}
+      {/* Pending tasks preview */}
+      {clockedIn && pendingTasks.length > 0 && (
+        <div style={{ background: '#fff', border: '0.5px solid #E2E8F0', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '0.5px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#0F172A' }}>Your tasks</span>
+            <button onClick={() => router.push('/dashboard/tasks')} style={{ background: 'none', border: 'none', fontSize: 12, color: '#1F4E79', cursor: 'pointer' }}>View all →</button>
+          </div>
+          {pendingTasks.slice(0, 4).map((t: any) => (
+            <div key={t.id} onClick={() => router.push('/dashboard/tasks')}
+              style={{ padding: '10px 16px', borderBottom: '0.5px solid #F1F5F9', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center',
+                borderLeft: t.urgency === 'urgent' ? '3px solid #DC2626' : t.urgency === 'high' ? '3px solid #D97706' : '3px solid transparent' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: '#0F172A' }}>{t.title}</div>
+                <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>{t.xp_reward} XP · Due {fmtTime(t.due_at)}</div>
+              </div>
+              <div style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99,
+                background: t.urgency === 'urgent' ? '#FEE2E2' : t.urgency === 'high' ? '#FEF3C7' : '#F1F5F9',
+                color: t.urgency === 'urgent' ? '#991B1B' : t.urgency === 'high' ? '#92400E' : '#64748B' }}>
+                {t.urgency}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {!clockedIn && (
         <div style={{ background: '#fff', border: '0.5px solid #E2E8F0', borderRadius: 12, padding: '20px', textAlign: 'center' }}>
           <div style={{ fontSize: 14, fontWeight: 500, color: '#0F172A', marginBottom: 6 }}>Ready to start your simulation day?</div>

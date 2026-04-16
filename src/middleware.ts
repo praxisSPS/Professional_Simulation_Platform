@@ -63,25 +63,24 @@ export async function middleware(request: NextRequest) {
   if (user && pathname === '/') {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('career_path')
+      .select('onboarding_complete')
       .eq('id', user.id)
       .single()
-    if (!profile?.career_path) {
+    if (!profile?.onboarding_complete) {
       return NextResponse.redirect(new URL('/onboarding', request.url))
     }
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  // Logged in + on /onboarding: check if they already have a career path
-  // If they do, send them to dashboard
+  // Logged in + on /onboarding: check if they already completed onboarding
   if (user && pathname === '/onboarding') {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('career_path')
+      .select('onboarding_complete')
       .eq('id', user.id)
       .single()
 
-    if (profile?.career_path) {
+    if (profile?.onboarding_complete === true) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }

@@ -3,7 +3,17 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { generateCoworkerMessage, PERSONAS } from '@/lib/ai-coworkers'
 
-// Day 1 tasks per career path
+// ── Boss persona per career path ──────────────────────────────
+const BOSS_PERSONA: Record<string, { name: string; role: string; sign: string }> = {
+  data_engineering:        { name: 'James Hargreaves', role: 'Head of Data & Analytics',       sign: 'JH' },
+  product_management:      { name: 'James Hargreaves', role: 'VP Product',                      sign: 'JH' },
+  project_management:      { name: 'James Hargreaves', role: 'Programme Director',              sign: 'JH' },
+  digital_marketing:       { name: 'James Hargreaves', role: 'Head of Growth & Marketing',      sign: 'JH' },
+  financial_analysis:      { name: 'James Hargreaves', role: 'CFO',                             sign: 'JH' },
+  reliability_engineering: { name: 'Mike Kowalski',    role: 'Maintenance Manager',             sign: 'MK' },
+}
+
+// ── Day 1 tasks per career path ───────────────────────────────
 const DAY1_TASKS: Record<string, any[]> = {
   data_engineering: [
     { title: 'Review yesterday\'s pipeline failure report', type: 'document', urgency: 'high', description: 'Sarah flagged that the nightly ETL job failed twice last week. Review the error logs and write a short summary of root cause and proposed fix.', xp: 25, due_offset_mins: 60 },
@@ -43,7 +53,7 @@ const DAY1_TASKS: Record<string, any[]> = {
   ],
 }
 
-// Morning briefing messages from James (boss)
+// ── Morning briefings per career path ────────────────────────
 const MORNING_BRIEFINGS: Record<string, { subject: string; body: string }> = {
   data_engineering: {
     subject: 'Good morning - here are your priorities for today',
@@ -119,7 +129,7 @@ Heads up on what needs your attention today:
 
 Good shift.
 
-MK (Mike Kowalski, Maintenance Manager)`,
+MK`,
   },
   financial_analysis: {
     subject: 'Q4 actuals are in - urgent analysis needed',
@@ -166,9 +176,33 @@ export async function POST(req: NextRequest) {
 
   if (error || !session) return NextResponse.json({ error: error?.message }, { status: 500 })
 
-  const now = new Date()
+  // Guard: check if messages already seeded today for this sim_day
+  // Uses calendar day so clock out + clock in on same day doesn't re-seed
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
 
-  // Get tasks for correct day (Day 1 hardcoded, Days 2-5 from scripts)
+  const { count: msgCount } = await supabase
+    .from('messages')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('sender_persona', 'boss')
+    .gte('created_at', todayStart.toISOString())
+
+  if ((msgCount ?? 0) > 0) {
+    // Already seeded today — re-attach existing pending tasks to new session
+    await supabase
+      .from('tasks')
+      .update({ session_id: session.id })
+      .eq('user_id', user.id)
+      .is('completed_at', null)
+
+    return NextResponse.json({ session, tasks_seeded: 0, resumed: true })
+  }
+
+  // ── Fresh session — seed tasks and messages ──────────────────
+  const now = new Date()
+  const boss = BOSS_PERSONA[career_path] ?? BOSS_PERSONA.data_engineering
+
   let taskSource = DAY1_TASKS[career_path] ?? DAY1_TASKS.data_engineering
   let briefingSource = MORNING_BRIEFINGS[career_path] ?? MORNING_BRIEFINGS.data_engineering
 
@@ -183,8 +217,8 @@ export async function POST(req: NextRequest) {
     if (dayData?.briefing) briefingSource = dayData.briefing
   }
 
-  const tasks = taskSource
-  const taskInserts = tasks.map((t: any, i: number) => ({
+  // Insert tasks
+  const taskInserts = taskSource.map((t: any, i: number) => ({
     user_id: user.id,
     session_id: session.id,
     title: t.title,
@@ -192,30 +226,30 @@ export async function POST(req: NextRequest) {
     description: t.description,
     urgency: t.urgency,
     xp_reward: t.xp,
+    status: 'pending',
     assigned_at: new Date(now.getTime() + i * 2 * 60000).toISOString(),
     due_at: new Date(now.getTime() + t.due_offset_mins * 60000).toISOString(),
-    status: 'pending',
   }))
 
-  await supabase.from('tasks').insert(taskInserts)
+  const { error: taskError } = await supabase.from('tasks').insert(taskInserts)
+  if (taskError) console.error('Task insert error:', taskError)
 
-  // Send morning briefing from James (guaranteed - no Gemini needed)
-  const briefing = briefingSource
+  // Insert morning briefing from correct boss persona
   await supabase.from('messages').insert({
     session_id: session.id,
     user_id: user.id,
     sender_persona: 'boss',
-    sender_name: 'James Hargreaves',
-    sender_role: 'Your Line Manager',
-    subject: briefing.subject,
-    body: briefing.body,
+    sender_name: boss.name,
+    sender_role: boss.role,
+    subject: briefingSource.subject,
+    body: briefingSource.body,
     urgency: 'normal',
     requires_response: false,
     trigger_type: 'scheduled',
     is_read: false,
   })
 
-  // Also try to send a dynamic AI message (non-blocking - if Gemini fails, tasks still exist)
+  // Dynamic Marcus message (non-blocking)
   try {
     const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
     const generated = await generateCoworkerMessage({
@@ -245,14 +279,12 @@ export async function POST(req: NextRequest) {
       is_read: false,
     })
   } catch {
-    // Gemini unavailable - morning briefing + tasks are already seeded, simulation still works
+    // Gemini unavailable - briefing + tasks already seeded, simulation still works
   }
 
   return NextResponse.json({ session, tasks_seeded: taskInserts.length })
 }
 
-// ── Days 2-5 task seeding ─────────────────────────────────────
-// Import at runtime to avoid circular dependency
 async function getDayTasksAndBriefing(careerPath: string, simDay: number) {
   if (simDay <= 1) return null
   try {
@@ -265,5 +297,3 @@ async function getDayTasksAndBriefing(careerPath: string, simDay: number) {
     return null
   }
 }
-// build Tue 14 Apr 2026 21:44:55 BST
-// build Tue 14 Apr 2026 21:45:22 BST

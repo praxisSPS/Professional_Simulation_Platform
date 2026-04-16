@@ -193,7 +193,7 @@ export default function OnboardingPage() {
       return t + (q.opts.find((o: any) => o.v === sel)?.p ?? 0)
     }, 0)
 
-    await supabase.from('profiles').upsert({
+    const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       full_name: name,
       email: user.email,
@@ -210,6 +210,7 @@ export default function OnboardingPage() {
       self_selected_seniority: seniority,
       onboarding_complete: true,
     })
+    if (error) console.error('Upsert error:', error)
 
     setLoading(false); setStep(5)
   }

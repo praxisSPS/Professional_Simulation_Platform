@@ -505,8 +505,6 @@ export function getDayTasks(careerPath: string, day: TaskDay): SimTask[] {
   switch (careerPath) {
     case 'reliability_engineering': return RE_DAYS[day] ?? []
     case 'data_engineering':        return DE_DAYS[day] ?? []
-    case 'project_management':      return PJ_DAYS[day] ?? []
-    case 'product_management':      return PM_DAYS[day] ?? []
     case 'digital_marketing':       return DM_DAYS[day] ?? []
     case 'financial_analysis':      return FA_DAYS[day] ?? []
     default: return []
