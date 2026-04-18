@@ -230,7 +230,7 @@ export async function POST(req: NextRequest) {
     type: t.type,
     description: t.description,
     urgency: t.urgency,
-    xp_reward: t.xp,
+    xp_earned: t.xp,
     status: 'pending',
     assigned_at: new Date(now.getTime() + i * 2 * 60000).toISOString(),
     due_at: new Date(now.getTime() + t.due_offset_mins * 60000).toISOString(),
