@@ -15,21 +15,27 @@ interface Props {
   recentTasks: any[]
 }
 
+interface DaySummary {
+  sim_day_completed: number
+  next_sim_day: number
+  tasks_completed: number
+  avg_score: number
+  xp_earned: number
+  good_decisions: number
+  task_breakdown: { title: string; score: number; xp: number; quality: string }[]
+}
+
 export default function DashboardHome({ profile, kpi, messages, activeSession, recentTasks }: Props) {
   const [clockedIn, setClockedIn] = useState(!!activeSession)
   const [loading, setLoading] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(activeSession?.id ?? null)
   const [clockInTime, setClockInTime] = useState<string | null>(activeSession?.clock_in_time ?? null)
+  const [daySummary, setDaySummary] = useState<DaySummary | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
   const urgent = messages.filter((m: any) => m.urgency === 'urgent' && !m.is_read)
   const unread = messages.filter((m: any) => !m.is_read)
-  const pendingTasks = recentTasks.filter((t: any) => !t.completed_at)
-  const completedToday = recentTasks.filter((t: any) => {
-    if (!t.completed_at) return false
-    return new Date(t.completed_at).toDateString() === new Date().toDateString()
-  })
 
   const nextLevelXP = LEVEL_THRESHOLDS[(profile.current_level + 1) as keyof typeof LEVEL_THRESHOLDS] ?? 9999
   const xpPct = Math.min(100, Math.round((profile.experience_points / nextLevelXP) * 100))
@@ -70,8 +76,75 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
     setLoading(false)
   }
 
+  async function endDay() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/session/end-day', { method: 'POST' })
+      if (!res.ok) throw new Error('End day failed')
+      const summary: DaySummary = await res.json()
+      setDaySummary(summary)
+      setClockedIn(false)
+      setSessionId(null)
+    } catch {
+      ;(window as any).espToast?.('Failed to end day. Try again.', 'error')
+    }
+    setLoading(false)
+  }
+
+  const pendingTasks = recentTasks.filter((t: any) => !t.completed_at)
+  const completedToday = recentTasks.filter((t: any) => {
+    if (!t.completed_at) return false
+    return new Date(t.completed_at).toDateString() === new Date().toDateString()
+  })
+  const showEndDayButton = clockedIn && pendingTasks.length === 0 && completedToday.length > 0
+
   return (
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+      {/* Day summary modal */}
+      {daySummary && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '28px', maxWidth: 480, width: '100%', maxHeight: '90vh', overflow: 'auto' }}>
+            <div style={{ fontSize: 11, color: '#1F4E79', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>Day {daySummary.sim_day_completed} complete</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', marginBottom: 4 }}>Good work today</div>
+            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 20 }}>
+              {daySummary.tasks_completed} tasks · {daySummary.xp_earned} XP · avg score {daySummary.avg_score}%
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+              {[
+                { label: 'Tasks done', val: daySummary.tasks_completed, color: '#1F4E79' },
+                { label: 'XP earned', val: `+${daySummary.xp_earned}`, color: '#16A34A' },
+                { label: 'Good decisions', val: daySummary.good_decisions, color: '#7C3AED' },
+              ].map(s => (
+                <div key={s.label} style={{ background: '#F8FAFC', borderRadius: 10, padding: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.val}</div>
+                  <div style={{ fontSize: 11, color: '#94A3B8' }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              {daySummary.task_breakdown.map((t, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #F1F5F9', fontSize: 12 }}>
+                  <span style={{ color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '65%' }}>{t.title}</span>
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                    <span style={{ color: t.quality === 'good' ? '#16A34A' : t.quality === 'bad' ? '#DC2626' : '#D97706', fontWeight: 500 }}>{t.score}%</span>
+                    <span style={{ color: '#94A3B8' }}>+{t.xp} XP</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 12, color: '#64748B', marginBottom: 16, padding: '10px 14px', background: '#EBF3FB', borderRadius: 8 }}>
+              Day {daySummary.next_sim_day} unlocked — clock in tomorrow to continue your simulation.
+            </div>
+            <button
+              onClick={() => { setDaySummary(null); router.refresh() }}
+              style={{ width: '100%', padding: '12px', background: '#1F4E79', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Clock-in bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: '#fff', border: '0.5px solid #E2E8F0', borderRadius: 12 }}>
@@ -79,19 +152,34 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
         <span style={{ fontSize: 13, color: clockedIn ? '#0F172A' : '#64748B', fontWeight: clockedIn ? 500 : 400 }}>
           {clockedIn ? 'You are clocked in' : 'You are not clocked in'}
         </span>
-        <button
-          onClick={clockedIn ? clockOut : clockIn}
-          disabled={loading}
-          style={{
-            marginLeft: 'auto', padding: '7px 18px', border: 'none', borderRadius: 8,
-            fontSize: 12, fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer',
-            background: clockedIn ? '#FEE2E2' : '#1F4E79',
-            color: clockedIn ? '#991B1B' : '#fff',
-            opacity: loading ? 0.6 : 1,
-          }}
-        >
-          {loading ? '...' : clockedIn ? 'Clock out' : 'Clock in'}
-        </button>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          {showEndDayButton && (
+            <button
+              onClick={endDay}
+              disabled={loading}
+              style={{
+                padding: '7px 18px', border: 'none', borderRadius: 8,
+                fontSize: 12, fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer',
+                background: '#1F4E79', color: '#fff', opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? '...' : 'End day →'}
+            </button>
+          )}
+          <button
+            onClick={clockedIn ? clockOut : clockIn}
+            disabled={loading}
+            style={{
+              padding: '7px 18px', border: 'none', borderRadius: 8,
+              fontSize: 12, fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer',
+              background: clockedIn ? '#FEE2E2' : '#1F4E79',
+              color: clockedIn ? '#991B1B' : '#fff',
+              opacity: loading ? 0.6 : 1,
+            }}
+          >
+            {loading ? '...' : clockedIn ? 'Clock out' : 'Clock in'}
+          </button>
+        </div>
       </div>
 
       {/* Live sim clock — shows when clocked in */}

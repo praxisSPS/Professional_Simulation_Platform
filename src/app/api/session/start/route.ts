@@ -155,7 +155,15 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  const { career_path, sim_day = 1 } = await req.json()
+  const { career_path } = await req.json()
+
+  // Read sim_day from profile
+  const { data: profileForDay } = await adminSupabase
+    .from('profiles')
+    .select('sim_day')
+    .eq('id', user.id)
+    .single()
+  const sim_day = profileForDay?.sim_day ?? 1
 
   // End any active sessions
   await adminSupabase
