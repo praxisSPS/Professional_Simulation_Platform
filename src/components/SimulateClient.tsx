@@ -53,33 +53,20 @@ export default function SimulateClient({ profile, activeSession, pendingTasks, c
     )
   }
 
-  // All tasks done
-  if (sortedPending.length === 0 && completedTasks.length > 0) {
-    const xpTotal = completedTasks.reduce((t, task) => t + (task.xp_earned ?? 0), 0)
-    const goodDecisions = completedTasks.filter(t => t.decision_quality === 'good').length
+  // No pending tasks
+  if (sortedPending.length === 0) {
     return (
-      <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: "'Segoe UI',system-ui,sans-serif" }}>
-        <div style={{ maxWidth: 480, margin: '0 auto' }}>
-          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(0,194,168,0.1)', border: '2px solid #00C2A8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 28 }}>★</div>
-          <div style={{ fontSize: 10, color: '#00C2A8', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>Day complete</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#E2E8F0', marginBottom: 8 }}>All tasks completed</div>
-          <div style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6, marginBottom: 24 }}>
-            You completed {completedTasks.length} tasks today, earned {xpTotal} XP, and made {goodDecisions} strong decisions.
-          </div>
-          <div style={{ background: '#0D1117', border: '1px solid #1E2535', borderRadius: 12, padding: '14px 18px', marginBottom: 20, textAlign: 'left' }}>
-            {completedTasks.map((t: any) => (
-              <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #1E2535', fontSize: 12 }}>
-                <span style={{ color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>{t.title}</span>
-                <span style={{ color: t.decision_quality === 'good' ? '#00C2A8' : t.decision_quality === 'bad' ? '#F43F5E' : '#F59E0B', fontWeight: 500, flexShrink: 0 }}>
-                  +{t.xp_earned ?? 0} XP
-                </span>
-              </div>
-            ))}
-          </div>
-          <button onClick={() => router.push('/dashboard/kpis')} style={{ width: '100%', padding: '12px', background: '#00C2A8', color: '#0A0A0F', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-            View my KPIs →
-          </button>
+      <div style={{ padding: '40px 20px', textAlign: 'center', color: '#64748B', fontSize: 13, fontFamily: "'Segoe UI',system-ui,sans-serif" }}>
+        <div style={{ fontSize: 32, marginBottom: 16 }}>📭</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#E2E8F0', marginBottom: 8 }}>No active tasks</div>
+        <div style={{ marginBottom: 20, color: '#4A5568' }}>
+          {completedTasks.length > 0
+            ? `You've completed ${completedTasks.length} task${completedTasks.length !== 1 ? 's' : ''} today. End your day from the Dashboard to wrap up.`
+            : 'Clock in from the Dashboard to receive tasks from your AI colleagues.'}
         </div>
+        <button onClick={() => router.push('/dashboard')} style={{ padding: '10px 24px', background: '#00C2A8', color: '#0A0A0F', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          Go to Dashboard →
+        </button>
       </div>
     )
   }
@@ -166,10 +153,8 @@ function TaskWorkspace({ task, sessionId, careerPath, onComplete }: WorkspacePro
   const [tab, setTab] = useState<'sql' | 'python' | 'diagram' | 'text'>('sql')
   const isDataEng = careerPath === 'data_engineering'
   const isTechnical = isDataEng
-  const isCodeTask = ['document', 'report'].includes(task.type)
-
-  // Data engineering + code task type: tabbed SQL/Python/Diagram interface
-  if (isTechnical && isCodeTask) {
+  // Data engineering: tabbed SQL/Python/Diagram interface for all task types
+  if (isTechnical) {
     const tabs: { id: 'sql' | 'python' | 'diagram' | 'text'; label: string }[] = [
       { id: 'sql', label: 'SQL' },
       { id: 'python', label: 'Python' },
