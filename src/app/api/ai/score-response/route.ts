@@ -273,9 +273,18 @@ Scoring guide:
 
     // If no more pending tasks — seed follow-ups inline
     if (remaining === 0 && activeSession) {
-      const careerPathToUse = profile?.career_path ?? career_path ?? 'data_engineering'
-      await seedFollowupTasks(adminSupabase, user.id, activeSession.id, careerPathToUse)
-    }
+      const { count: totalCompleted } = await adminSupabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+
+      // Only seed follow-ups after exactly the first 4 completions
+      if ((totalCompleted ?? 0) <= 4) {
+        const careerPathToUse = profile?.career_path ?? career_path ?? 'data_engineering'
+        await seedFollowupTasks(adminSupabase, user.id, activeSession.id, careerPathToUse)
+      }
+    } 
 
     // Write KPI snapshot
     const { data: allTasks } = await adminSupabase
