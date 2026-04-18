@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import SimTaskPanel from '@/components/SimTaskPanel'
+import dynamic from 'next/dynamic'
+
+const SQLEditor = dynamic(() => import('@/components/simulate/SQLEditor'), { ssr: false })
+const PythonEditor = dynamic(() => import('@/components/simulate/PythonEditor'), { ssr: false })
+const DiagramEditor = dynamic(() => import('@/components/simulate/DiagramEditor'), { ssr: false })
 
 interface Props {
   profile: any
@@ -131,10 +136,11 @@ export default function SimulateClient({ profile, activeSession, pendingTasks, c
       {/* Active task panel */}
       <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
         {activeTask ? (
-          <SimTaskPanel
+          <TaskWorkspace
             key={activeTask.id}
             task={activeTask}
             sessionId={activeSession?.id ?? ''}
+            careerPath={profile?.career_path ?? ''}
             onComplete={handleComplete}
           />
         ) : (
@@ -145,4 +151,65 @@ export default function SimulateClient({ profile, activeSession, pendingTasks, c
       </div>
     </div>
   )
+}
+
+// ── Task workspace: routes to the right editor per career path + task type ──
+
+interface WorkspaceProps {
+  task: any
+  sessionId: string
+  careerPath: string
+  onComplete: (result: any) => void
+}
+
+function TaskWorkspace({ task, sessionId, careerPath, onComplete }: WorkspaceProps) {
+  const [tab, setTab] = useState<'sql' | 'python' | 'diagram' | 'text'>('sql')
+  const isDataEng = careerPath === 'data_engineering'
+  const isTechnical = isDataEng
+  const isCodeTask = ['document', 'report'].includes(task.type)
+
+  // Data engineering + code task type: tabbed SQL/Python/Diagram interface
+  if (isTechnical && isCodeTask) {
+    const tabs: { id: 'sql' | 'python' | 'diagram' | 'text'; label: string }[] = [
+      { id: 'sql', label: 'SQL' },
+      { id: 'python', label: 'Python' },
+      { id: 'diagram', label: 'Diagram' },
+    ]
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Task description */}
+        <div style={{ fontSize: 15, fontWeight: 700, color: '#E2E8F0', lineHeight: 1.3 }}>{task.title}</div>
+        <div style={{ background: '#0D1117', border: '1px solid #1E2535', borderLeft: '3px solid #00C2A8', borderRadius: '0 8px 8px 0', padding: '12px 14px', fontSize: 13, color: '#94A3B8', lineHeight: 1.7 }}>
+          {task.description}
+        </div>
+        {/* Tab bar */}
+        <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid #1E2535', paddingBottom: 0 }}>
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              style={{
+                padding: '7px 16px', background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 12, fontWeight: tab === t.id ? 600 : 400,
+                color: tab === t.id ? '#00C2A8' : '#4A5568',
+                borderBottom: tab === t.id ? '2px solid #00C2A8' : '2px solid transparent',
+                marginBottom: -1,
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        {/* Active editor */}
+        <div style={{ paddingTop: 4 }}>
+          {tab === 'sql' && <SQLEditor task={task} sessionId={sessionId} onComplete={onComplete} />}
+          {tab === 'python' && <PythonEditor task={task} sessionId={sessionId} onComplete={onComplete} />}
+          {tab === 'diagram' && <DiagramEditor task={task} sessionId={sessionId} onComplete={onComplete} />}
+        </div>
+      </div>
+    )
+  }
+
+  // Default: use the standard SimTaskPanel for all other career paths and task types
+  return <SimTaskPanel task={task} sessionId={sessionId} onComplete={onComplete} />
 }
