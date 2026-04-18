@@ -74,6 +74,8 @@ export default function TasksClient({ tasks: initialTasks, activeSession, profil
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          task_id: task.id,
+          career_path: profile?.career_path,
           task_type: task.type,
           task_title: task.title,
           task_description: task.description,
