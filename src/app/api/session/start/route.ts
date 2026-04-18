@@ -216,18 +216,35 @@ export async function POST(req: NextRequest) {
   const now = new Date()
   const boss = BOSS_PERSONA[career_path] ?? BOSS_PERSONA.product_management
 
-  let taskSource = DAY1_TASKS[career_path] ?? DAY1_TASKS.data_engineering
+  // Get profile level for curriculum
+  const { data: profileFull } = await adminSupabase
+    .from('profiles')
+    .select('current_level')
+    .eq('id', user.id)
+    .single()
+  const userLevel = profileFull?.current_level ?? 1
+
+  // Load from curriculum (days 1+); fall back to legacy DAY1_TASKS for day 1 only
+  let taskSource: any[] = []
   let briefingSource = MORNING_BRIEFINGS[career_path] ?? MORNING_BRIEFINGS.data_engineering
 
-  if (sim_day >= 2) {
-    const dayData = await getDayTasksAndBriefing(career_path, sim_day)
-    if (dayData?.tasks?.length) {
-      taskSource = dayData.tasks.map((t: any) => ({
-        title: t.title, type: t.type, urgency: t.urgency,
-        description: t.description, xp: t.xp_reward, due_offset_mins: t.due_offset_mins,
-      }))
+  try {
+    const { getTasks } = await import('@/lib/curriculum/index')
+    const curriculumTasks = await getTasks(career_path, sim_day, userLevel)
+    if (curriculumTasks.length > 0) {
+      taskSource = curriculumTasks
     }
-    if (dayData?.briefing) briefingSource = dayData.briefing
+  } catch { /* fall through to legacy */ }
+
+  if (taskSource.length === 0) {
+    taskSource = DAY1_TASKS[career_path] ?? DAY1_TASKS.data_engineering
+  }
+
+  if (sim_day >= 2) {
+    try {
+      const dayData = await getDayTasksAndBriefing(career_path, sim_day)
+      if (dayData?.briefing) briefingSource = dayData.briefing
+    } catch { /* use default briefing */ }
   }
 
   // Insert tasks
@@ -238,8 +255,10 @@ export async function POST(req: NextRequest) {
     type: t.type,
     description: t.description,
     urgency: t.urgency,
-    xp_earned: t.xp,
+    xp_earned: t.xp ?? t.xp_reward,
     status: 'pending',
+    project_ref: t.project_ref ?? null,
+    kpi_tag: t.kpi_tag ?? null,
     assigned_at: new Date(now.getTime() + i * 2 * 60000).toISOString(),
     due_at: new Date(now.getTime() + t.due_offset_mins * 60000).toISOString(),
   }))
