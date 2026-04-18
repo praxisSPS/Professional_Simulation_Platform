@@ -1,16 +1,17 @@
 // POST - clock in, create session, seed Day 1 tasks and morning briefing
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { generateCoworkerMessage, PERSONAS } from '@/lib/ai-coworkers'
 
 // ── Boss persona per career path ──────────────────────────────
-const BOSS_PERSONA: Record<string, { name: string; role: string; sign: string }> = {
-  data_engineering:        { name: 'James Hargreaves', role: 'Head of Data & Analytics',       sign: 'JH' },
-  product_management:      { name: 'James Hargreaves', role: 'VP Product',                      sign: 'JH' },
-  project_management:      { name: 'James Hargreaves', role: 'Programme Director',              sign: 'JH' },
-  digital_marketing:       { name: 'James Hargreaves', role: 'Head of Growth & Marketing',      sign: 'JH' },
-  financial_analysis:      { name: 'James Hargreaves', role: 'CFO',                             sign: 'JH' },
-  reliability_engineering: { name: 'Mike Kowalski',    role: 'Maintenance Manager',             sign: 'MK' },
+const BOSS_PERSONA: Record<string, { name: string; role: string }> = {
+  data_engineering:        { name: 'Sarah Edwards',    role: 'Head of Data & Analytics' },
+  product_management:      { name: 'James Hargreaves', role: 'VP Product' },
+  project_management:      { name: 'James Hargreaves', role: 'Programme Director' },
+  digital_marketing:       { name: 'James Hargreaves', role: 'Head of Growth & Marketing' },
+  financial_analysis:      { name: 'Amara Osei',       role: 'CFO' },
+  reliability_engineering: { name: 'Mike Kowalski',    role: 'Maintenance Manager' },
 }
 
 // ── Day 1 tasks per career path ───────────────────────────────
@@ -19,7 +20,7 @@ const DAY1_TASKS: Record<string, any[]> = {
     { title: 'Review yesterday\'s pipeline failure report', type: 'document', urgency: 'high', description: 'Sarah flagged that the nightly ETL job failed twice last week. Review the error logs and write a short summary of root cause and proposed fix.', xp: 25, due_offset_mins: 60 },
     { title: 'Scope creep decision - client wants new dashboard features', type: 'scope_decision', urgency: 'urgent', description: 'Marcus has promised Priya Shah two new dashboard features by Friday. Current sprint ends Thursday. You need to respond to Marcus professionally.', xp: 40, due_offset_mins: 30 },
     { title: 'Daily standup notes', type: 'standup', urgency: 'normal', description: 'Write your standup update: what you did yesterday, what you are doing today, any blockers.', xp: 15, due_offset_mins: 90 },
-    { title: 'Data quality audit - Q4 sales table', type: 'report', urgency: 'normal', description: 'James has asked for a data quality report on the Q4 sales table before it goes to the board. Check for nulls, duplicates, and anomalies.', xp: 35, due_offset_mins: 240 },
+    { title: 'Data quality audit - Q4 sales table', type: 'report', urgency: 'normal', description: 'Sarah has asked for a data quality report on the Q4 sales table before it goes to the board. Check for nulls, duplicates, and anomalies.', xp: 35, due_offset_mins: 240 },
   ],
   product_management: [
     { title: 'Prioritise sprint backlog - 3 urgent items, 1 slot', type: 'decision', urgency: 'urgent', description: 'Three stakeholders have each marked their feature as the top priority for this sprint. You have capacity for one. Decide which to build and communicate the decision.', xp: 40, due_offset_mins: 45 },
@@ -47,7 +48,7 @@ const DAY1_TASKS: Record<string, any[]> = {
   ],
   financial_analysis: [
     { title: 'Variance analysis - Q4 actuals vs budget', type: 'report', urgency: 'high', description: 'Q4 actuals are in. Revenue is up 15% YoY but net profit has fallen. Write a variance analysis identifying the key drivers.', xp: 40, due_offset_mins: 90 },
-    { title: 'Three-scenario model for board presentation', type: 'document', urgency: 'urgent', description: 'The CFO needs three financial scenarios (base, upside, downside) for a new product launch. Board meeting is tomorrow 9am. You have 4 hours.', xp: 45, due_offset_mins: 240 },
+    { title: 'Three-scenario model for board presentation', type: 'document', urgency: 'urgent', description: 'Amara needs three financial scenarios (base, upside, downside) for a new product launch. Board meeting is tomorrow 9am. You have 4 hours.', xp: 45, due_offset_mins: 240 },
     { title: 'Daily standup', type: 'standup', urgency: 'normal', description: 'Write your standup: yesterday, today, blockers.', xp: 15, due_offset_mins: 90 },
     { title: 'EBITDA bridge - explain the gap', type: 'report', urgency: 'normal', description: 'The business unit leader wants to understand why EBITDA is GBP2.3M below plan. Build a waterfall bridge analysis.', xp: 35, due_offset_mins: 180 },
   ],
@@ -61,7 +62,7 @@ const MORNING_BRIEFINGS: Record<string, { subject: string; body: string }> = {
 
 Quick rundown for today:
 
-1. I need the pipeline failure summary on my desk by 10am - Sarah flagged it twice last week and I want to understand the root cause before it happens again.
+1. I need the pipeline failure summary on my desk by 10am - I flagged it twice last week and I want to understand the root cause before it happens again.
 
 2. Marcus has apparently promised Priya two new dashboard features by Friday. I only just found out. Speak to him this morning and manage expectations - we cannot keep committing the team without checking capacity.
 
@@ -71,7 +72,7 @@ Quick rundown for today:
 
 Let's make it a productive one.
 
-JH`,
+SE`,
   },
   product_management: {
     subject: 'Today\'s priorities - action needed on sprint backlog',
@@ -135,34 +136,36 @@ MK`,
     subject: 'Q4 actuals are in - urgent analysis needed',
     body: `Morning,
 
-Q4 actuals landed overnight. Revenue is up 15% but net profit is down. The CFO is going to want answers before the board call.
+Q4 actuals landed overnight. Revenue is up 15% but net profit is down. The board will want answers.
 
 Two things from me:
 
 1. Variance analysis - I need the key drivers identified by mid-morning. Don't just report the numbers, explain them.
 
-2. The CFO also needs three scenarios modelled for the new product launch. Board meeting is tomorrow 9am. I know that's tight. Prioritise the most sensitive assumptions and get me something solid.
+2. I also need three scenarios modelled for the new product launch. Board meeting is tomorrow 9am. I know that's tight. Prioritise the most sensitive assumptions and get me something solid.
 
-JH`,
+AO`,
   },
 }
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
+  const adminSupabase = createAdminClient()
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   const { career_path, sim_day = 1 } = await req.json()
 
   // End any active sessions
-  await supabase
+  await adminSupabase
     .from('simulation_sessions')
     .update({ status: 'abandoned', clock_out_time: new Date().toISOString() })
     .eq('user_id', user.id)
     .eq('status', 'active')
 
   // Create new session
-  const { data: session, error } = await supabase
+  const { data: session, error } = await adminSupabase
     .from('simulation_sessions')
     .insert({
       user_id: user.id,
@@ -174,14 +177,16 @@ export async function POST(req: NextRequest) {
     .select()
     .single()
 
-  if (error || !session) return NextResponse.json({ error: error?.message }, { status: 500 })
+  if (error || !session) {
+    console.error('Session create error:', error)
+    return NextResponse.json({ error: error?.message }, { status: 500 })
+  }
 
-  // Guard: check if messages already seeded today for this sim_day
-  // Uses calendar day so clock out + clock in on same day doesn't re-seed
+  // Guard: check if already seeded today
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
 
-  const { count: msgCount } = await supabase
+  const { count: msgCount } = await adminSupabase
     .from('messages')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
@@ -189,8 +194,8 @@ export async function POST(req: NextRequest) {
     .gte('created_at', todayStart.toISOString())
 
   if ((msgCount ?? 0) > 0) {
-    // Already seeded today — re-attach existing pending tasks to new session
-    await supabase
+    // Already seeded today — re-attach pending tasks to new session
+    await adminSupabase
       .from('tasks')
       .update({ session_id: session.id })
       .eq('user_id', user.id)
@@ -201,7 +206,7 @@ export async function POST(req: NextRequest) {
 
   // ── Fresh session — seed tasks and messages ──────────────────
   const now = new Date()
-  const boss = BOSS_PERSONA[career_path] ?? BOSS_PERSONA.data_engineering
+  const boss = BOSS_PERSONA[career_path] ?? BOSS_PERSONA.product_management
 
   let taskSource = DAY1_TASKS[career_path] ?? DAY1_TASKS.data_engineering
   let briefingSource = MORNING_BRIEFINGS[career_path] ?? MORNING_BRIEFINGS.data_engineering
@@ -231,11 +236,11 @@ export async function POST(req: NextRequest) {
     due_at: new Date(now.getTime() + t.due_offset_mins * 60000).toISOString(),
   }))
 
-  const { error: taskError } = await supabase.from('tasks').insert(taskInserts)
+  const { error: taskError } = await adminSupabase.from('tasks').insert(taskInserts)
   if (taskError) console.error('Task insert error:', taskError)
 
   // Insert morning briefing from correct boss persona
-  await supabase.from('messages').insert({
+  const { error: msgError } = await adminSupabase.from('messages').insert({
     session_id: session.id,
     user_id: user.id,
     sender_persona: 'boss',
@@ -248,10 +253,11 @@ export async function POST(req: NextRequest) {
     trigger_type: 'scheduled',
     is_read: false,
   })
+  if (msgError) console.error('Message insert error:', msgError)
 
   // Dynamic Marcus message (non-blocking)
   try {
-    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+    const { data: profile } = await adminSupabase.from('profiles').select('full_name').eq('id', user.id).single()
     const generated = await generateCoworkerMessage({
       persona: 'marcus',
       scenario: 'morning_briefing',
@@ -264,7 +270,7 @@ export async function POST(req: NextRequest) {
       },
     })
     const p = PERSONAS.marcus
-    await supabase.from('messages').insert({
+    await adminSupabase.from('messages').insert({
       session_id: session.id,
       user_id: user.id,
       sender_persona: 'marcus',
@@ -279,7 +285,7 @@ export async function POST(req: NextRequest) {
       is_read: false,
     })
   } catch {
-    // Gemini unavailable - briefing + tasks already seeded, simulation still works
+    // Gemini unavailable - briefing + tasks already seeded
   }
 
   return NextResponse.json({ session, tasks_seeded: taskInserts.length })
