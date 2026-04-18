@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { PERSONAS } from '@/lib/ai-coworkers'
 import { findEligibleColleague, pickTemplate } from '@/lib/colleagues'
+import { createPortfolioEvidence } from '@/lib/portfolio-entry'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -171,12 +172,11 @@ Scoring guide:
       .eq('id', task_id)
       .eq('user_id', user.id)
 
-    // Update profile XP
-    const { data: profile } = await adminSupabase
-      .from('profiles')
-      .select('experience_points, career_path')
-      .eq('id', user.id)
-      .single()
+    // Fetch task (for title + kpi_tag) and profile together
+    const [{ data: task }, { data: profile }] = await Promise.all([
+      adminSupabase.from('tasks').select('id, title, kpi_tag, assigned_at, type').eq('id', task_id).single(),
+      adminSupabase.from('profiles').select('experience_points, career_path, current_level, organisation_id').eq('id', user.id).single(),
+    ])
 
     if (profile) {
       await adminSupabase
@@ -185,23 +185,20 @@ Scoring guide:
         .eq('id', user.id)
     }
 
-    // Generate portfolio entry for high-scoring tasks (fire and forget)
-    if (parsed.score >= 75) {
-      void adminSupabase.from('portfolio_entries').insert({
-        user_id: user.id,
-        career_path: profile?.career_path ?? career_path ?? 'data_engineering',
-        level_achieved: 1,
-        organisation_name: 'Nexus Digital',
-        start_date: new Date().toISOString(),
-        end_date: new Date().toISOString(),
-        final_pi_score: parsed.score,
-        key_achievements: [`Scored ${parsed.score}% on: task`],
-        certificate_id: null,
-        is_public: false,
-        entry_type: 'competency_evidence',
-        evidence: parsed.manager_comment ?? '',
+    // Generate portfolio evidence entry for high-scoring tasks
+    if (parsed.score >= 75 && task && profile) {
+      const { data: org } = await adminSupabase
+        .from('organisations')
+        .select('name')
+        .eq('id', profile.organisation_id)
+        .maybeSingle()
+
+      void createPortfolioEvidence(adminSupabase, user.id, {
+        ...task,
+        completed_at: new Date().toISOString(),
         score: parsed.score,
-      })
+        ai_feedback: parsed.manager_comment ?? '',
+      }, profile, org?.name ?? 'Nexus Digital')
     }
 
     // Get active session
