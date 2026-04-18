@@ -31,8 +31,8 @@ export default async function PortfolioPage({ params }: Props) {
   const profile = entry.profiles as any
   const careerDisplay = CAREER_PATH_DISPLAY[entry.career_path]
 
-  // Parse key_achievements array safely
   const achievements: string[] = Array.isArray(entry.key_achievements) ? entry.key_achievements : []
+  const competencyTags: string[] = Array.isArray(entry.competency_tags) ? entry.competency_tags : []
 
   const pi = entry.final_pi_score ?? 0
   const piColor = pi >= 85 ? '#16A34A' : pi >= 70 ? '#1F4E79' : '#DC2626'
@@ -85,6 +85,15 @@ export default async function PortfolioPage({ params }: Props) {
                   </div>
                 </div>
               </div>
+
+              {/* Competency tags */}
+              {competencyTags.length > 0 && (
+                <div style={{ padding: '16px 32px', borderTop: '0.5px solid #2E74B5', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {competencyTags.map((tag: string) => (
+                    <span key={tag} style={{ fontSize: 11, padding: '4px 12px', background: 'rgba(255,255,255,0.12)', color: '#B5D4F4', borderRadius: 99, fontWeight: 500 }}>{tag}</span>
+                  ))}
+                </div>
+              )}
 
               {/* KPI grid */}
               <div style={{ padding: '24px 32px' }}>

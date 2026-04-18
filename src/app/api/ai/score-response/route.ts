@@ -185,6 +185,25 @@ Scoring guide:
         .eq('id', user.id)
     }
 
+    // Generate portfolio entry for high-scoring tasks (fire and forget)
+    if (parsed.score >= 75) {
+      void adminSupabase.from('portfolio_entries').insert({
+        user_id: user.id,
+        career_path: profile?.career_path ?? career_path ?? 'data_engineering',
+        level_achieved: 1,
+        organisation_name: 'Nexus Digital',
+        start_date: new Date().toISOString(),
+        end_date: new Date().toISOString(),
+        final_pi_score: parsed.score,
+        key_achievements: [`Scored ${parsed.score}% on: task`],
+        certificate_id: null,
+        is_public: false,
+        entry_type: 'competency_evidence',
+        evidence: parsed.manager_comment ?? '',
+        score: parsed.score,
+      })
+    }
+
     // Get active session
     const { data: activeSession } = await adminSupabase
       .from('simulation_sessions')
