@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import SimTaskPanel from '@/components/SimTaskPanel'
 import dynamic from 'next/dynamic'
 
-type WP = { task: any; sessionId: string; onComplete: (result: any) => void; initialTab?: string }
+type WP = { task: any; sessionId: string; onComplete: (result: any) => void; initialTab?: string; careerPath?: string }
 const WorkspaceDE  = dynamic<WP>(() => import('@/components/simulate/WorkspaceDE'),  { ssr: false })
 const WorkspaceRE  = dynamic<WP>(() => import('@/components/simulate/WorkspaceRE'),  { ssr: false })
 const WorkspaceFA  = dynamic<WP>(() => import('@/components/simulate/WorkspaceFA'),  { ssr: false })
@@ -154,7 +154,7 @@ interface WorkspaceProps {
 }
 
 function TaskWorkspace({ task, sessionId, careerPath, onComplete }: WorkspaceProps) {
-  const props = { task, sessionId, onComplete }
+  const props = { task, sessionId, onComplete, careerPath }
   switch (careerPath) {
     case 'data_engineering':        return <WorkspaceDE  {...props} />
     case 'reliability_engineering': return <WorkspaceRE  {...props} />

@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, ArtefactPanel, inp, lbl, ta, row, col, D } from './shared'
+import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, ArtefactPanel, SubmissionModeBar, AlternateSubmitForm, SubmissionMode, inp, lbl, ta, row, col, D } from './shared'
 
 interface Props {
   task: any
   sessionId: string
   onComplete: (result: any) => void
   initialTab?: string
+  careerPath?: string
 }
 
 const TABS = [
@@ -914,20 +915,28 @@ ${recommendations || '(empty)'}
 
 // ── Workspace shell ────────────────────────────────────────────
 
-export default function WorkspaceDM({ task, sessionId, onComplete, initialTab }: Props) {
+export default function WorkspaceDM({ task, sessionId, onComplete, initialTab, careerPath }: Props) {
   const [tab, setTab] = useState(initialTab ?? 'dashboard')
+  const [subMode, setSubMode] = useState<SubmissionMode>('native')
 
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
       {task.artefact_content && <ArtefactPanel task={task} />}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
         <TaskBrief task={task} />
-        <TabBar tabs={TABS} active={tab} onChange={setTab} />
-        {tab === 'dashboard' && <CampaignDashboard   task={task} sessionId={sessionId} onComplete={onComplete} />}
-        {tab === 'copy'      && <CopyEditor          task={task} sessionId={sessionId} onComplete={onComplete} />}
-        {tab === 'abtest'    && <ABTestPlanner        task={task} sessionId={sessionId} onComplete={onComplete} />}
-        {tab === 'builder'   && <CampaignBuilder      task={task} sessionId={sessionId} onComplete={onComplete} />}
-        {tab === 'analytics' && <AnalyticsInterpreter task={task} sessionId={sessionId} onComplete={onComplete} />}
+        <SubmissionModeBar mode={subMode} onChange={setSubMode} />
+        {subMode === 'native' ? (
+          <>
+            <TabBar tabs={TABS} active={tab} onChange={setTab} />
+            {tab === 'dashboard' && <CampaignDashboard   task={task} sessionId={sessionId} onComplete={onComplete} />}
+            {tab === 'copy'      && <CopyEditor          task={task} sessionId={sessionId} onComplete={onComplete} />}
+            {tab === 'abtest'    && <ABTestPlanner        task={task} sessionId={sessionId} onComplete={onComplete} />}
+            {tab === 'builder'   && <CampaignBuilder      task={task} sessionId={sessionId} onComplete={onComplete} />}
+            {tab === 'analytics' && <AnalyticsInterpreter task={task} sessionId={sessionId} onComplete={onComplete} />}
+          </>
+        ) : (
+          <AlternateSubmitForm mode={subMode} task={task} onComplete={onComplete} careerPath={careerPath} />
+        )}
       </div>
     </div>
   )

@@ -257,6 +257,120 @@ export function ArtefactPanel({ task }: { task: { artefact_type?: string; artefa
   )
 }
 
+// ── Submission mode ────────────────────────────────────────────
+
+export type SubmissionMode = 'native' | 'link' | 'file'
+
+export function SubmissionModeBar({ mode, onChange }: {
+  mode: SubmissionMode
+  onChange: (m: SubmissionMode) => void
+}) {
+  const modes: { id: SubmissionMode; label: string }[] = [
+    { id: 'native', label: 'Workspace tools' },
+    { id: 'link', label: 'Paste a link' },
+    { id: 'file', label: 'Upload a file' },
+  ]
+  return (
+    <div style={{ display: 'flex', gap: 6, marginBottom: 2, flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 10, color: '#4A5568', alignSelf: 'center', marginRight: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Submit via:</span>
+      {modes.map(m => (
+        <button key={m.id} onClick={() => onChange(m.id)} style={{
+          padding: '3px 10px', background: mode === m.id ? '#00C2A8' : 'transparent',
+          color: mode === m.id ? '#0A0A0F' : '#4A5568',
+          border: `1px solid ${mode === m.id ? '#00C2A8' : '#1E2535'}`,
+          borderRadius: 99, fontSize: 11, fontWeight: mode === m.id ? 600 : 400, cursor: 'pointer',
+        }}>
+          {m.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export function AlternateSubmitForm({ mode, task, onComplete, careerPath }: {
+  mode: 'link' | 'file'
+  task: any
+  onComplete: (r: any) => void
+  careerPath?: string
+}) {
+  const [url, setUrl] = React.useState('')
+  const [file, setFile] = React.useState<File | null>(null)
+  const [loading, setLoading] = React.useState(false)
+  const [result, setResult] = React.useState<any>(null)
+
+  async function fileToBase64(f: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve((reader.result as string).split(',')[1])
+      reader.onerror = reject
+      reader.readAsDataURL(f)
+    })
+  }
+
+  async function submit() {
+    if (mode === 'link' && !url.trim()) return
+    if (mode === 'file' && !file) return
+    setLoading(true)
+    try {
+      const body: Record<string, any> = {
+        task_id: task.id,
+        task_description: task.description,
+        career_path: careerPath,
+        task_type: task.type,
+        rubric: [],
+      }
+      if (mode === 'link') {
+        body.submission_url = url.trim()
+        body.response = ' '
+      } else if (file) {
+        body.submission_file = await fileToBase64(file)
+        body.submission_file_name = file.name
+        body.submission_file_mime = file.type
+        body.response = ' '
+      }
+      const res = await fetch('/api/ai/score-response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      setResult(data)
+      if (data.score) onComplete(data)
+    } catch {
+      setResult({ error: 'Submission failed. Check your connection.' })
+    }
+    setLoading(false)
+  }
+
+  const canSubmit = mode === 'link' ? !!url.trim() : !!file
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 0' }}>
+      {mode === 'link' ? (
+        <div>
+          <label style={lbl}>Document or Portfolio URL</label>
+          <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://docs.google.com/…" style={inp} />
+          <div style={{ fontSize: 10, color: '#4A5568', marginTop: 4 }}>Google Docs, Notion, GitHub, Confluence — any public URL containing your work</div>
+        </div>
+      ) : (
+        <div>
+          <label style={lbl}>Upload your file</label>
+          <input
+            type="file"
+            accept=".pdf,.xlsx,.xls,.docx,.doc,.png,.jpg,.jpeg"
+            onChange={e => setFile(e.target.files?.[0] ?? null)}
+            style={{ ...inp, padding: '6px 8px', cursor: 'pointer' }}
+          />
+          {file && <div style={{ fontSize: 10, color: '#00C2A8', marginTop: 4 }}>{file.name} ({Math.round(file.size / 1024)} KB)</div>}
+          <div style={{ fontSize: 10, color: '#4A5568', marginTop: 4 }}>PDF, Excel, Word, or image files</div>
+        </div>
+      )}
+      <SubmitBtn onClick={submit} loading={loading} label="Evaluate submission ▶" color="#00C2A8" />
+      <ResultPanel result={result} />
+    </div>
+  )
+}
+
 export async function evalSubmit({
   taskId, content, language, taskDescription, rubric, setResult, setLoading, onComplete,
 }: {

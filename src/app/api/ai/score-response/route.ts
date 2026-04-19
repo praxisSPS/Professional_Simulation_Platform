@@ -6,6 +6,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { PERSONAS } from '@/lib/ai-coworkers'
 import { findEligibleColleague, pickTemplate } from '@/lib/colleagues'
 import { createPortfolioEvidence } from '@/lib/portfolio-entry'
+import * as xlsx from 'xlsx'
+import mammoth from 'mammoth'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -92,7 +94,43 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  const { task_id, rubric, response, career_path, task_type } = await req.json()
+  const body = await req.json()
+  const { task_id, rubric, career_path, task_type, task_description, submission_url, submission_file, submission_file_name, submission_file_mime } = body
+  let response: string = body.response ?? ''
+
+  // Extract content from URL submission
+  if (submission_url) {
+    try {
+      const fetchRes = await fetch(submission_url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+      const html = await fetchRes.text()
+      response = html.replace(/<[^>]+>/g, ' ').replace(/\s{2,}/g, ' ').slice(0, 8000)
+    } catch {
+      response = `URL submission: ${submission_url}`
+    }
+  }
+
+  // Extract content from file submission
+  if (submission_file && !submission_url) {
+    const buf = Buffer.from(submission_file, 'base64')
+    const mime = submission_file_mime ?? ''
+    const name = (submission_file_name ?? '').toLowerCase()
+    if (name.endsWith('.xlsx') || name.endsWith('.xls') || mime.includes('spreadsheet') || mime.includes('excel')) {
+      const wb = xlsx.read(buf, { type: 'buffer' })
+      const texts = wb.SheetNames.map(s => {
+        const ws = wb.Sheets[s]
+        return `Sheet: ${s}\n${xlsx.utils.sheet_to_csv(ws)}`
+      })
+      response = texts.join('\n\n').slice(0, 8000)
+    } else if (name.endsWith('.docx') || mime.includes('wordprocessingml')) {
+      const result = await mammoth.extractRawText({ buffer: buf })
+      response = result.value.slice(0, 8000)
+    } else if (mime.startsWith('image/') || mime === 'application/pdf') {
+      // Pass as image to Gemini — set response to placeholder, image handled below
+      response = '[File submission — see attached image/PDF]'
+    } else {
+      response = buf.toString('utf-8').slice(0, 8000)
+    }
+  }
 
   if (!response?.trim()) {
     return NextResponse.json({
@@ -139,8 +177,18 @@ Scoring guide:
 
   let parsed: any = null
 
+  const isImageFile = submission_file && (submission_file_mime?.startsWith('image/') || submission_file_mime === 'application/pdf')
+
   try {
-    const result = await model.generateContent(prompt)
+    let result
+    if (isImageFile) {
+      result = await model.generateContent([
+        { inlineData: { mimeType: submission_file_mime as any, data: submission_file } },
+        prompt,
+      ])
+    } else {
+      result = await model.generateContent(prompt)
+    }
     const text = result.response.text().trim().replace(/```json\n?|\n?```/g, '')
     parsed = JSON.parse(text)
     parsed.score = Math.max(0, Math.min(100, parseInt(parsed.score) || 0))
@@ -171,6 +219,8 @@ Scoring guide:
         ai_feedback: parsed.manager_comment,
         decision_quality: quality,
         xp_earned: xpEarned,
+        submission_type: submission_url ? 'link' : submission_file ? 'file' : 'native',
+        submission_url: submission_url ?? null,
       })
       .eq('id', task_id)
       .eq('user_id', user.id)

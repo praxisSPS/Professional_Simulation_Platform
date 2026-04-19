@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, ArtefactPanel, inp, lbl, ta, row, col, D } from './shared'
+import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, ArtefactPanel, SubmissionModeBar, AlternateSubmitForm, SubmissionMode, inp, lbl, ta, row, col, D } from './shared'
 
-interface Props { task: any; sessionId: string; onComplete: (result: any) => void; initialTab?: string }
+interface Props { task: any; sessionId: string; onComplete: (result: any) => void; initialTab?: string; careerPath?: string }
 
 const TABS = [
   { id: 'rca',    label: 'RCA' },
@@ -647,8 +647,9 @@ ${actions || '(none)'}`
 
 // ── Workspace shell ────────────────────────────────────────────
 
-export default function WorkspaceRE({ task, sessionId, onComplete, initialTab }: Props) {
+export default function WorkspaceRE({ task, sessionId, onComplete, initialTab, careerPath }: Props) {
   const [tab, setTab] = useState(initialTab ?? 'rca')
+  const [subMode, setSubMode] = useState<SubmissionMode>('native')
   const props = { task, sessionId, onComplete }
 
   return (
@@ -656,12 +657,19 @@ export default function WorkspaceRE({ task, sessionId, onComplete, initialTab }:
       {task.artefact_content && <ArtefactPanel task={task} />}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
         <TaskBrief task={task} />
-        <TabBar tabs={TABS} active={tab} onChange={setTab} />
-        {tab === 'rca'   && <RCAWorkbench {...props} />}
-        {tab === 'fmea'  && <FMEATool {...props} />}
-        {tab === 'sop'   && <SOPBuilder {...props} />}
-        {tab === 'cmms'  && <MiniCMMS {...props} />}
-        {tab === 'shift' && <ShiftReport {...props} />}
+        <SubmissionModeBar mode={subMode} onChange={setSubMode} />
+        {subMode === 'native' ? (
+          <>
+            <TabBar tabs={TABS} active={tab} onChange={setTab} />
+            {tab === 'rca'   && <RCAWorkbench {...props} />}
+            {tab === 'fmea'  && <FMEATool {...props} />}
+            {tab === 'sop'   && <SOPBuilder {...props} />}
+            {tab === 'cmms'  && <MiniCMMS {...props} />}
+            {tab === 'shift' && <ShiftReport {...props} />}
+          </>
+        ) : (
+          <AlternateSubmitForm mode={subMode} task={task} onComplete={onComplete} careerPath={careerPath} />
+        )}
       </div>
     </div>
   )

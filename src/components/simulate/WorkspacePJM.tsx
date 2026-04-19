@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, ArtefactPanel, inp, lbl, ta, row, col, D } from './shared'
+import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, ArtefactPanel, SubmissionModeBar, AlternateSubmitForm, SubmissionMode, inp, lbl, ta, row, col, D } from './shared'
 
 interface Props {
   task: any
   sessionId: string
   onComplete: (result: any) => void
   initialTab?: string
+  careerPath?: string
 }
 
 const TABS = [
@@ -924,20 +925,28 @@ APPROVER: ${approver || 'TBD'}
 
 // ── Workspace shell ────────────────────────────────────────────
 
-export default function WorkspacePJM({ task, sessionId, onComplete, initialTab }: Props) {
+export default function WorkspacePJM({ task, sessionId, onComplete, initialTab, careerPath }: Props) {
   const [tab, setTab] = useState(initialTab ?? 'raid')
+  const [subMode, setSubMode] = useState<SubmissionMode>('native')
 
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
       {task.artefact_content && <ArtefactPanel task={task} />}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
         <TaskBrief task={task} />
-        <TabBar tabs={TABS} active={tab} onChange={setTab} />
-        {tab === 'raid'   && <RAIDLog          task={task} sessionId={sessionId} onComplete={onComplete} />}
-        {tab === 'gantt'  && <GanttTimeline    task={task} sessionId={sessionId} onComplete={onComplete} />}
-        {tab === 'status' && <StatusReport     task={task} sessionId={sessionId} onComplete={onComplete} />}
-        {tab === 'comms'  && <StakeholderComms task={task} sessionId={sessionId} onComplete={onComplete} />}
-        {tab === 'change' && <ChangeRequest    task={task} sessionId={sessionId} onComplete={onComplete} />}
+        <SubmissionModeBar mode={subMode} onChange={setSubMode} />
+        {subMode === 'native' ? (
+          <>
+            <TabBar tabs={TABS} active={tab} onChange={setTab} />
+            {tab === 'raid'   && <RAIDLog          task={task} sessionId={sessionId} onComplete={onComplete} />}
+            {tab === 'gantt'  && <GanttTimeline    task={task} sessionId={sessionId} onComplete={onComplete} />}
+            {tab === 'status' && <StatusReport     task={task} sessionId={sessionId} onComplete={onComplete} />}
+            {tab === 'comms'  && <StakeholderComms task={task} sessionId={sessionId} onComplete={onComplete} />}
+            {tab === 'change' && <ChangeRequest    task={task} sessionId={sessionId} onComplete={onComplete} />}
+          </>
+        ) : (
+          <AlternateSubmitForm mode={subMode} task={task} onComplete={onComplete} careerPath={careerPath} />
+        )}
       </div>
     </div>
   )
