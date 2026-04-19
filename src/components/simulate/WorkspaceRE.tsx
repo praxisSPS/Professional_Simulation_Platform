@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, inp, lbl, ta, row, col, D } from './shared'
+import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, ArtefactPanel, inp, lbl, ta, row, col, D } from './shared'
 
-interface Props { task: any; sessionId: string; onComplete: (result: any) => void }
+interface Props { task: any; sessionId: string; onComplete: (result: any) => void; initialTab?: string }
 
 const TABS = [
   { id: 'rca',    label: 'RCA' },
@@ -647,19 +647,22 @@ ${actions || '(none)'}`
 
 // ── Workspace shell ────────────────────────────────────────────
 
-export default function WorkspaceRE({ task, sessionId, onComplete }: Props) {
-  const [tab, setTab] = useState('rca')
+export default function WorkspaceRE({ task, sessionId, onComplete, initialTab }: Props) {
+  const [tab, setTab] = useState(initialTab ?? 'rca')
   const props = { task, sessionId, onComplete }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <TaskBrief task={task} />
-      <TabBar tabs={TABS} active={tab} onChange={setTab} />
-      {tab === 'rca'   && <RCAWorkbench {...props} />}
-      {tab === 'fmea'  && <FMEATool {...props} />}
-      {tab === 'sop'   && <SOPBuilder {...props} />}
-      {tab === 'cmms'  && <MiniCMMS {...props} />}
-      {tab === 'shift' && <ShiftReport {...props} />}
+    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      {task.artefact_content && <ArtefactPanel task={task} />}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+        <TaskBrief task={task} />
+        <TabBar tabs={TABS} active={tab} onChange={setTab} />
+        {tab === 'rca'   && <RCAWorkbench {...props} />}
+        {tab === 'fmea'  && <FMEATool {...props} />}
+        {tab === 'sop'   && <SOPBuilder {...props} />}
+        {tab === 'cmms'  && <MiniCMMS {...props} />}
+        {tab === 'shift' && <ShiftReport {...props} />}
+      </div>
     </div>
   )
 }

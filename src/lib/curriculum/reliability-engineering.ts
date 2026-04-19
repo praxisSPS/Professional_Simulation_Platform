@@ -37,6 +37,65 @@ export const CURRICULUM: Curriculum = {
       { title: 'Post-shutdown inspection report — Compressor 2', type: 'report', urgency: 'high', description: 'Compressor 2 has been shut down. Write the post-inspection report: what was found, the recommended repair (with part numbers and estimated time), and the go/no-go recommendation for restart.', xp: 40, due_offset_mins: 60, project_ref: 'compressor-2-maint', kpi_tag: 'quality' },
       { title: 'Pasteuriser 1 PM — document completion and sign-off', type: 'document', urgency: 'normal', description: 'The Pasteuriser 1 PM tasks are now complete. Document the completion: tasks performed, findings, parts replaced, and post-PM condition check. Get Mike\'s sign-off.', xp: 20, due_offset_mins: 90, project_ref: 'pasteuriser-pm', kpi_tag: 'reliability' },
       { title: 'Weekly maintenance KPIs — report to Mike', type: 'report', urgency: 'high', description: 'Mike needs the weekly maintenance KPI report: PM compliance rate, MTTR (mean time to repair), number of unplanned stoppages, and cost of unplanned downtime. Compare to target. This week was below target.', xp: 35, due_offset_mins: 120, project_ref: 'line-2-reliability', kpi_tag: 'reliability' },
+      {
+        title: 'Review Kwame\'s shift handover',
+        type: 'report', urgency: 'normal',
+        description: 'Kwame Asante has handed over to you. Review his shift handover notes carefully. Identify anything that has been missed or inadequately documented — your safety and the next shift depend on this being complete.',
+        xp: 25, due_offset_mins: 45, project_ref: 'line-2-reliability', kpi_tag: 'reliability',
+        artefact_type: 'document',
+        artefact_title: 'Shift Handover Notes — Kwame Asante 06:00–14:00',
+        artefact_content: `SHIFT HANDOVER — KWAME ASANTE — 06:00–14:00
+
+EQUIPMENT STATUS AT END OF SHIFT:
+
+Conveyor 3 Line 2
+  Status: Bearing replaced, running normal
+  Oil temp: 72°C ✓ (within limit)
+  Notes: No further action required
+
+Pasteuriser 1
+  Status: 2 PM tasks overdue — flagged for morning shift ✓
+  Notes: PM tasks not completed this shift — production window required
+
+Compressor 2
+  Status: Oil leak contained, pressure 6.2 bar ✓
+  Notes: Seal replacement scheduled — monitor pressure
+
+Boiler Room
+  Status: Temperature 84°C, pressure nominal ✓
+  Notes: None
+
+OUTSTANDING ACTIONS: See above
+
+HANDOVER COMPLETE: K. Asante
+
+---
+⚠ MISSING FROM THIS HANDOVER:
+Steam trap ST-04 was making an unusual knocking noise at approximately 05:30.
+Kwame investigated briefly but did not log it or include it in the handover.
+A failed steam trap can cause water hammer, pipe damage, or a safety incident.
+This omission must be flagged.`,
+      },
+      {
+        title: 'Sense-check Kwame\'s FMEA',
+        type: 'report', urgency: 'high',
+        description: 'Kwame has drafted a FMEA for the Conveyor 3 drive system. Mike wants a second opinion before it goes into the maintenance register. Review the FMEA table and identify any errors or omissions — particularly on actions for high-RPN items.',
+        xp: 35, due_offset_mins: 90, project_ref: 'line-2-reliability', kpi_tag: 'quality',
+        artefact_type: 'table',
+        artefact_title: 'FMEA — Conveyor 3 Drive System v0.1',
+        artefact_content: `| Component | Failure Mode | Effect | Severity | Occurrence | Detection | RPN | Recommended Action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Main drive bearing | Wear / seizure | Conveyor stops, Line 2 down | 9 | 6 | 3 | 162 | |
+| Drive chain | Elongation / snap | Production stoppage, safety risk | 8 | 4 | 4 | 128 | |
+| Motor coupling | Misalignment | Vibration, bearing wear | 6 | 3 | 5 | 90 | Monthly alignment check |
+| Drive belt | Cracking / slip | Reduced throughput | 5 | 4 | 3 | 60 | 6-monthly replacement |
+| Gearbox seals | Oil leak | Environmental contamination | 4 | 3 | 4 | 48 | Weekly inspection |
+
+⚠ TWO HIGH-RPN ITEMS (RPN > 100) HAVE NO RECOMMENDED ACTION:
+1. Main drive bearing (RPN 162) — This is the bearing that already failed on Day 1. Leaving this blank is unacceptable.
+2. Drive chain (RPN 128) — A snap presents a safety risk. No action is a critical gap in this FMEA.
+Both must have recommended actions before this document can be signed off.`,
+      },
     ],
     2: [
       { title: 'Compressor 2 repair decision — in-house vs. specialist contractor', type: 'decision', urgency: 'urgent', description: 'The inspection reveals the Compressor 2 shaft seal needs replacing. In-house repair: 3 days. Specialist contractor: 1 day but GBP 8,400 cost vs GBP 2,100 in-house. Production is currently using backup. What do you recommend?', xp: 50, due_offset_mins: 45, project_ref: 'compressor-2-maint', kpi_tag: 'quality' },

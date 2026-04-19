@@ -37,6 +37,70 @@ export const CURRICULUM: Curriculum = {
       { title: 'Client project board meeting prep', type: 'document', urgency: 'urgent', description: 'The client project board meets in 2 hours. Prepare: updated RAG, revised timeline, scope change status, top 3 risks, and the ask from the board. One page maximum — board members don\'t read more.', xp: 40, due_offset_mins: 30, project_ref: 'nexus-crm-rollout', kpi_tag: 'communication' },
       { title: 'RAID log review and refresh', type: 'document', urgency: 'normal', description: 'The RAID log hasn\'t been updated in a week. Review all items: close resolved issues, update risk status, add the two new dependencies identified this week, and ensure all owners are still correct.', xp: 25, due_offset_mins: 90, project_ref: 'nexus-crm-rollout', kpi_tag: 'reliability' },
       { title: 'Go-live readiness checklist', type: 'document', urgency: 'high', description: 'Go-live is in 2 weeks. Write a go-live readiness checklist covering: UAT sign-off, data migration, training completion, support model, rollback plan, and stakeholder sign-offs needed.', xp: 35, due_offset_mins: 120, project_ref: 'nexus-crm-rollout', kpi_tag: 'reliability' },
+      {
+        title: 'Review Kwame\'s RAID log update',
+        type: 'report', urgency: 'high',
+        description: 'Kwame has updated the RAID log and sent it for review before the steering group meeting. James has asked you to check it. Identify any items that are incomplete, incorrectly rated, or missing a mitigation.',
+        xp: 30, due_offset_mins: 60, project_ref: 'nexus-crm-rollout', kpi_tag: 'quality',
+        artefact_type: 'table',
+        artefact_title: 'RAID Log — CRM Implementation Week 4',
+        artefact_content: `| ID | Category | Description | Probability | Impact | Mitigation | Owner | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| R-001 | Risk | Data migration scope larger than estimated | HIGH | HIGH | Phase the migration — split into 3 batches | Ben Afolabi | Open |
+| R-002 | Risk | Key client stakeholder going on maternity leave Week 8 | HIGH | MEDIUM | | Kwame Asante | Open |
+| I-001 | Issue | Vendor delivery delayed by 1 week | CONFIRMED | HIGH | Vendor escalated — revised date agreed | Ben Afolabi | In Progress |
+| A-001 | Assumption | Client will provide data extract by Week 5 | — | HIGH | Confirmed verbally | Kwame Asante | Open |
+| D-001 | Dependency | Integration requires API access from client IT | — | HIGH | Request submitted Week 3 | Ben Afolabi | Open |
+
+⚠ CRITICAL GAP:
+R-002: Key client stakeholder going on maternity leave — the Mitigation column is BLANK.
+This is a HIGH probability / MEDIUM impact risk with no mitigation plan.
+Who is the backup stakeholder? Has a handover plan been agreed? Has the client sponsor been notified?
+This must be completed before the steering group sees this log.`,
+      },
+      {
+        title: 'Review Ben\'s technical architecture proposal',
+        type: 'report', urgency: 'urgent',
+        description: 'Ben Afolabi has drafted a technical architecture proposal for the CRM integration. James wants a PM-level review — not a deep technical review, but sense-checking for delivery risk and single points of failure before the client signs off.',
+        xp: 40, due_offset_mins: 45, project_ref: 'nexus-crm-rollout', kpi_tag: 'quality',
+        artefact_type: 'document',
+        artefact_title: 'CRM Integration Architecture — Ben Afolabi',
+        artefact_content: `CRM INTEGRATION ARCHITECTURE v1.0
+Author: Ben Afolabi, Technical Lead
+Date: Week 4
+
+OVERVIEW
+This document describes the technical architecture for the Nexus–CRM integration.
+
+COMPONENTS:
+1. Nexus Platform API (read/write access)
+2. CRM Connector Service (middleware, hosted on AWS EC2)
+3. Central Database Server (PostgreSQL, single instance)
+4. Synchronisation scheduler (cron-based, runs every 15 minutes)
+
+DATA FLOW:
+Nexus Platform → API call → CRM Connector → Database Server → CRM system
+
+DATABASE CONFIGURATION:
+  Host: db-prod-01.internal
+  Type: PostgreSQL 14
+  Handles: All read and write operations for the integration
+  Replica: None configured
+  Failover: Not defined
+
+MONITORING:
+  AWS CloudWatch alerts on CPU > 80%
+
+DISASTER RECOVERY:
+  Daily backups to S3
+
+---
+⚠ CRITICAL ARCHITECTURAL RISK:
+The database configuration shows a SINGLE database server handling all read/write operations with NO replica and NO failover defined.
+This is a single point of failure. If db-prod-01 goes down, the entire CRM integration fails with no automatic recovery.
+For a business-critical integration, this is not acceptable. Options: (1) Add a read replica with automatic failover, (2) Use RDS Multi-AZ, (3) Document and accept the risk with a manual failover SLA.
+This must be addressed or formally risk-accepted before client sign-off.`,
+      },
     ],
     2: [
       { title: 'Critical path analysis — can we hit the go-live date?', type: 'decision', urgency: 'urgent', description: 'Three tasks on the critical path are running 3 days late. Assess: is go-live in 2 weeks still achievable? If yes, what needs to happen today? If no, what are the options and what do you recommend?', xp: 55, due_offset_mins: 45, project_ref: 'nexus-crm-rollout', kpi_tag: 'quality' },

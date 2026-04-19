@@ -37,6 +37,83 @@ export const CURRICULUM: Curriculum = {
       { title: 'Sprint retrospective — what went wrong this sprint?', type: 'standup', urgency: 'normal', description: 'Run a sprint retrospective and document: (1) what went well, (2) what didn\'t — specifically the scope commitment issue with Marcus, (3) the top 3 actions to improve next sprint. Be honest.', xp: 20, due_offset_mins: 60, project_ref: 'nexus-platform-q1', kpi_tag: 'quality' },
       { title: 'James wants a prioritisation framework — write it', type: 'document', urgency: 'high', description: 'Following the sprint backlog conflicts, James wants a formal prioritisation framework for the product team. Define the scoring model (value vs effort vs strategic fit), how it will be applied, and how decisions will be communicated to stakeholders.', xp: 40, due_offset_mins: 90, project_ref: 'nexus-platform-q1', kpi_tag: 'scope_control' },
       { title: 'Customer discovery: interview debrief', type: 'report', urgency: 'normal', description: 'You ran 3 customer interviews this week. Write a debrief covering: key themes, unmet needs, feature requests (and your assessment of their priority), and how the findings affect the roadmap.', xp: 35, due_offset_mins: 150, project_ref: 'nexus-platform-q1', kpi_tag: 'quality' },
+      {
+        title: 'Review Sarah\'s user interview synthesis',
+        type: 'report', urgency: 'normal',
+        description: 'Sarah Chen has synthesised last month\'s user interviews and submitted a two-page research document. James wants your review before it shapes the next roadmap cycle. Read it carefully — there may be themes that are missing from her synthesis.',
+        xp: 30, due_offset_mins: 90, project_ref: 'nexus-platform-q1', kpi_tag: 'quality',
+        artefact_type: 'document',
+        artefact_title: 'User Research Synthesis — Sarah Chen',
+        artefact_content: `USER RESEARCH SYNTHESIS — Q4 INTERVIEWS
+Conducted by: Sarah Chen, Lead Engineer (acting as UX researcher)
+Sample: 18 user interviews, SMB and enterprise segments
+
+KEY THEMES IDENTIFIED:
+
+1. FASTER LOAD TIMES
+   Mentioned: 12 times across interviews
+   Verbatim examples: "The dashboard takes 8-10 seconds to load every morning"
+   "We've stopped using the export feature because it times out"
+   Priority: HIGH — affecting daily use
+
+2. BETTER MOBILE EXPERIENCE
+   Mentioned: 9 times
+   Verbatim examples: "I need to check metrics on the go but the mobile view is unusable"
+   Priority: MEDIUM — mostly field-based users
+
+3. MORE EXPORT OPTIONS
+   Mentioned: 5 times
+   Verbatim examples: "I can only export to CSV — I need Excel format"
+   Priority: LOW — power users only
+
+RECOMMENDATIONS:
+Focus Q1 on performance improvements. Mobile can be H2.
+
+---
+⚠ MISSING THEME — NOT CAPTURED IN SYNTHESIS:
+Offline mode was mentioned 7 times across the interviews (more than export options).
+Users with poor connectivity need to view cached data when offline.
+This theme has been completely omitted from Sarah's synthesis despite being the 3rd most mentioned need.
+It should be reviewed for roadmap inclusion before this document is distributed.`,
+      },
+      {
+        title: 'Review Yemi\'s design brief',
+        type: 'report', urgency: 'high',
+        description: 'Yemi Adeyinka has submitted a UX brief for the new enterprise onboarding flow. The engineering team starts next week. Review the brief for completeness — identify any user flows or edge cases that have been missed before dev begins.',
+        xp: 35, due_offset_mins: 60, project_ref: 'nexus-platform-q1', kpi_tag: 'quality',
+        artefact_type: 'document',
+        artefact_title: 'Enterprise Onboarding UX Brief — Yemi Adeyinka',
+        artefact_content: `ENTERPRISE ONBOARDING UX BRIEF
+Feature: Enterprise Account Creation
+Designed by: Yemi Adeyinka, Product Designer
+
+OBJECTIVE
+Create a streamlined onboarding flow for enterprise customers purchasing through the website.
+
+TARGET USER
+Enterprise buyer — typically a VP or IT lead purchasing for their team.
+
+USER FLOW:
+Step 1: Pricing page → Click "Start enterprise trial"
+Step 2: Company details form (company name, size, industry, admin email)
+Step 3: Confirmation email sent to admin
+Step 4: Sales rep contacts within 2 business days to complete setup
+
+SUCCESS METRICS:
+  - Drop-off rate on company details form < 20%
+  - Sales follow-up within 2 days: 95%
+
+DESIGN NOTES:
+Keep the form short. Reduce friction. Trust signals on the pricing page.
+
+---
+⚠ CRITICAL MISSING BRANCH:
+This flow has no handling for existing logged-in users.
+If a current user (e.g. on a personal plan) clicks "Start enterprise trial," they will be taken through the same company details form.
+Submitting it will attempt to create a new account with their email — which already exists — causing a duplicate account error.
+The brief needs a decision branch: if user is already logged in → route to account upgrade flow, not the new account creation flow.
+This must be resolved before engineering starts.`,
+      },
     ],
     2: [
       { title: 'Write the Vantage Corp feature release note', type: 'document', urgency: 'normal', description: 'The bulk export feature is now ready for release. Write the release notes for Priya Shah: what the feature does (user-facing language, not technical), how to use it, and any known limitations.', xp: 30, due_offset_mins: 90, project_ref: 'vantage-integration', kpi_tag: 'communication' },

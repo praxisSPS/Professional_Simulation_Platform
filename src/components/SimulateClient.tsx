@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import SimTaskPanel from '@/components/SimTaskPanel'
 import dynamic from 'next/dynamic'
 
-type WP = { task: any; sessionId: string; onComplete: (result: any) => void }
+type WP = { task: any; sessionId: string; onComplete: (result: any) => void; initialTab?: string }
 const WorkspaceDE  = dynamic<WP>(() => import('@/components/simulate/WorkspaceDE'),  { ssr: false })
 const WorkspaceRE  = dynamic<WP>(() => import('@/components/simulate/WorkspaceRE'),  { ssr: false })
 const WorkspaceFA  = dynamic<WP>(() => import('@/components/simulate/WorkspaceFA'),  { ssr: false })

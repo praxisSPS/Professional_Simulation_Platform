@@ -36,6 +36,66 @@ export const CURRICULUM: Curriculum = {
     1: [
       { title: 'Q1 budget reforecast — incorporate Q4 learnings', type: 'report', urgency: 'high', description: 'Based on the Q4 actuals and the analysis you have done this week, produce an updated Q1 budget reforecast. Identify the three biggest changes from the original budget and justify each adjustment.', xp: 45, due_offset_mins: 90, project_ref: 'q4-close', kpi_tag: 'quality' },
       { title: 'Standup — finance team weekly priorities', type: 'standup', urgency: 'normal', description: 'Write your standup for the finance team weekly meeting. Cover: Q4 close status, product launch model progress, and the audit response outstanding items.', xp: 15, due_offset_mins: 30, project_ref: 'q4-close', kpi_tag: 'communication' },
+      {
+        title: 'Review Daniel\'s variance analysis',
+        type: 'report', urgency: 'high',
+        description: 'Daniel Yeboah has submitted his Q4 variance analysis. Amara wants your review before it goes to the board. Check the numbers carefully — there may be errors. Write your review identifying any issues and corrections needed.',
+        xp: 35, due_offset_mins: 90, project_ref: 'q4-close', kpi_tag: 'quality',
+        artefact_type: 'document',
+        artefact_title: 'Q4 Variance Analysis — Daniel Yeboah',
+        artefact_content: `Q4 VARIANCE ANALYSIS — DANIEL YEBOAH
+Prepared for: Board Pack Submission
+
+REVENUE VARIANCE
+  Budget:   £4,200,000
+  Actual:   £4,800,000
+  Variance: +£600,000 (+14.3%)
+  Driver:   Hartwell contract signed in November ahead of schedule
+
+COST OF GOODS SOLD
+  Budget:   £1,900,000
+  Actual:   £2,400,000
+  Variance: -£500,000 (-26.3%)
+  Driver:   Supplier price increase Q4; higher direct materials usage
+
+OVERHEAD ALLOCATION
+  Basis: 142 FTE at £8,200 per head
+  Total: £1,164,400
+
+GROSS MARGIN
+  Budget:   54.8%
+  Actual:   50.0%
+  Driver:   Supplier cost pressure eroding margin despite revenue growth
+
+---
+⚠ ERROR IN THIS ANALYSIS:
+The overhead allocation uses 142 FTE. Current headcount is 158 FTE.
+This understates overhead costs by: (158 - 142) × £8,200 = £131,600.
+Gross margin in the analysis is overstated as a result.
+The correct actual gross margin is lower than 50.0% — recalculation required before board submission.`,
+      },
+      {
+        title: 'Sense-check the scenario model',
+        type: 'report', urgency: 'urgent',
+        description: 'The product launch scenario model is going to the board tomorrow. Amara wants a final sanity check on the assumptions. Review the three scenarios carefully — something doesn\'t look right in the numbers.',
+        xp: 40, due_offset_mins: 60, project_ref: 'product-launch-fa', kpi_tag: 'quality',
+        artefact_type: 'table',
+        artefact_title: 'Product Launch Scenarios v1.0',
+        artefact_content: `| Metric | Base Case | Upside Case | Downside Case |
+| --- | --- | --- | --- |
+| Revenue Growth | 6% | 9% | 7% |
+| Cost Inflation | 3% | 2% | 4% |
+| EBITDA Margin | 18% | 23% | 16% |
+| NPV (£M) | 4.2 | 6.8 | 3.1 |
+| Break-even Month | Month 14 | Month 10 | Month 18 |
+
+⚠ CRITICAL ERROR IN THIS MODEL:
+The Downside revenue growth (7%) is HIGHER than the Base Case revenue growth (6%).
+This is logically impossible — a downside scenario must represent a worse outcome than base.
+If the Base Case is 6% growth, the Downside must be BELOW 6% (e.g. 3–4%).
+Presenting this to the board as-is would be embarrassing and undermine credibility.
+The downside scenario must be reworked before tomorrow's board meeting.`,
+      },
     ],
     2: [
       { title: 'Build the working capital model for Q1', type: 'document', urgency: 'high', description: 'Amara wants a working capital model for Q1 that shows the cash conversion cycle, the key levers (debtor days, creditor days, stock days), and the projected working capital requirement. Include sensitivity to revenue growth.', xp: 50, due_offset_mins: 120, project_ref: 'q4-close', kpi_tag: 'quality' },

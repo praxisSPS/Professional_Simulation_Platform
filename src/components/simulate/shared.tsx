@@ -164,6 +164,99 @@ export function ResultPanel({ result }: { result: any }) {
   )
 }
 
+function parseMarkdownTable(content: string): { headers: string[]; rows: string[][] } | null {
+  const lines = content.split('\n').filter(l => l.trim().startsWith('|'))
+  if (lines.length < 2) return null
+  const isSeparator = (l: string) => /^\|[\s\-:|]+\|/.test(l.trim())
+  const parseCells = (l: string) => l.trim().split('|').slice(1, -1).map(c => c.trim())
+  const headerLine = lines[0]
+  const dataLines = lines.filter((_, i) => i > 0 && !isSeparator(lines[i]))
+  if (isSeparator(lines[1]) === false) return null
+  return { headers: parseCells(headerLine), rows: dataLines.map(parseCells) }
+}
+
+export function ArtefactPanel({ task }: { task: { artefact_type?: string; artefact_title?: string; artefact_content?: string } }) {
+  const [open, setOpen] = React.useState(true)
+  if (!task.artefact_content) return null
+
+  const isTable = task.artefact_type === 'table'
+  const tableData = isTable ? parseMarkdownTable(task.artefact_content) : null
+
+  const warningStart = task.artefact_content.indexOf('\n⚠')
+  const mainContent = warningStart > -1 ? task.artefact_content.slice(0, warningStart) : task.artefact_content
+  const warningContent = warningStart > -1 ? task.artefact_content.slice(warningStart + 1) : null
+
+  return (
+    <div style={{
+      width: 340, minWidth: 280, maxWidth: 380, flexShrink: 0,
+      background: '#0D1117', border: '1px solid #1E2535', borderRadius: 8,
+      overflow: 'hidden', alignSelf: 'flex-start', position: 'sticky', top: 0,
+    }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', padding: '10px 14px', background: 'none', border: 'none',
+          cursor: 'pointer', borderBottom: open ? '1px solid #1E2535' : 'none',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#00C2A8', textTransform: 'uppercase', letterSpacing: '0.08em', background: '#001A17', border: '1px solid #00C2A8', borderRadius: 4, padding: '2px 6px' }}>
+            {isTable ? 'TABLE' : 'DOC'}
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#E2E8F0', textAlign: 'left' }}>
+            {task.artefact_title ?? 'Attached work'}
+          </span>
+        </div>
+        <span style={{ fontSize: 11, color: '#4A5568' }}>{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div style={{ padding: '12px 14px', maxHeight: '70vh', overflowY: 'auto' }}>
+          {tableData ? (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 11 }}>
+                <thead>
+                  <tr>
+                    {tableData.headers.map((h, i) => (
+                      <th key={i} style={{ padding: '6px 10px', background: '#161B27', color: '#94A3B8', fontWeight: 600, textAlign: 'left', borderBottom: '1px solid #2D3748', whiteSpace: 'nowrap' }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableData.rows.map((row, ri) => (
+                    <tr key={ri} style={{ borderBottom: '1px solid #1E2535' }}>
+                      {row.map((cell, ci) => (
+                        <td key={ci} style={{ padding: '5px 10px', color: '#CBD5E1', verticalAlign: 'top' }}>
+                          {cell || <span style={{ color: '#2D3748' }}>—</span>}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <pre style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, fontFamily: "'Segoe UI',system-ui,sans-serif" }}>
+              {mainContent.trim()}
+            </pre>
+          )}
+
+          {warningContent && (
+            <div style={{ marginTop: 10, padding: '10px 12px', background: '#1A0F00', border: '1px solid #92400E', borderRadius: 6 }}>
+              <pre style={{ fontSize: 11, color: '#FCD34D', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, fontFamily: "'Segoe UI',system-ui,sans-serif" }}>
+                {warningContent.trim()}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export async function evalSubmit({
   taskId, content, language, taskDescription, rubric, setResult, setLoading, onComplete,
 }: {

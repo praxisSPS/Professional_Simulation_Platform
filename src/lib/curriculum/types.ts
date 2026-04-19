@@ -7,6 +7,9 @@ export interface CurriculumTask {
   due_offset_mins: number
   project_ref: string
   kpi_tag: string
+  artefact_type?: 'table' | 'document'
+  artefact_title?: string
+  artefact_content?: string
 }
 
 export type Curriculum = {

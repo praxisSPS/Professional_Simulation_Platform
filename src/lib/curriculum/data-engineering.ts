@@ -40,6 +40,62 @@ export const CURRICULUM: Curriculum = {
       { title: 'Standup — report progress on pipeline stabilisation', type: 'standup', urgency: 'normal', description: 'Day 3 standup. Report your progress on the pipeline stabilisation project. What\'s done, what\'s remaining, and what risks remain?', xp: 15, due_offset_mins: 30, project_ref: 'nexus-pipeline-v2', kpi_tag: 'communication' },
       { title: 'New client request — data model assessment needed', type: 'scope_decision', urgency: 'urgent', description: 'Marcus has brought in a new prospect who wants to integrate their CRM data with Nexus. Before committing, assess what the integration would require technically and whether it\'s feasible in Q1.', xp: 40, due_offset_mins: 45, project_ref: 'vantage-dashboard', kpi_tag: 'scope_control' },
       { title: 'Write the Q4 data quality report for the board', type: 'report', urgency: 'high', description: 'Sarah has asked you to write the Q4 data quality report for the board. Include: overall quality score, key issues identified, actions taken, and the Q1 improvement plan.', xp: 45, due_offset_mins: 120, project_ref: 'vantage-dashboard', kpi_tag: 'quality' },
+      {
+        title: 'Review James\'s Q4 anomaly analysis',
+        type: 'report', urgency: 'normal',
+        description: 'James Obi has submitted his first solo anomaly analysis for the Q4 sales data. Sarah has asked you to review it before it goes to the board. Identify any errors or gaps in James\'s findings and write your review with corrections.',
+        xp: 30, due_offset_mins: 90, project_ref: 'vantage-dashboard', kpi_tag: 'quality',
+        artefact_type: 'table',
+        artefact_title: 'Q4 Anomaly Analysis v1.0 — James Obi',
+        artefact_content: `| Finding | Date Range | Value | Classification | Action |
+| --- | --- | --- | --- | --- |
+| Revenue spike 14 Dec | Oct–Dec 2024 | £2.3M | Data entry error | Flagged for correction |
+| Null values in customer_id | Nov 2024 | 847 rows | No action needed | None |
+| Hartwell Group bulk order | Oct–Dec 2024 | £2.3M | Anomaly | Under investigation |
+
+**ERRORS IN THIS ANALYSIS:**
+1. Date range for all findings should be Nov–Jan, not Oct–Dec — James has pulled one month too early.
+2. Null values in customer_id DO need action — they break the attribution pipeline. "No action needed" is incorrect.
+3. The Hartwell Group spike is a legitimate verified bulk order — classifying it as an anomaly is wrong and will alarm the board unnecessarily.`,
+      },
+      {
+        title: 'Review pipeline SLA documentation',
+        type: 'report', urgency: 'high',
+        description: 'A draft SLA document has been circulated for the ETL pipeline. Sarah wants your review before it goes to the client. Identify the gaps and write your assessment — what must be fixed before this goes out.',
+        xp: 25, due_offset_mins: 60, project_ref: 'nexus-pipeline-v2', kpi_tag: 'reliability',
+        artefact_type: 'document',
+        artefact_title: 'Pipeline SLA v0.2 — Draft',
+        artefact_content: `NEXUS DATA PIPELINE — SERVICE LEVEL AGREEMENT (DRAFT v0.2)
+
+1. SCOPE
+   This SLA covers the nightly ETL pipeline delivering data to the Vantage dashboard.
+
+2. AVAILABILITY TARGET
+   Pipeline uptime: 99.5% per calendar month.
+
+3. INCIDENT RESPONSE TIMES
+   P1 (pipeline down): Response — as soon as possible
+   P2 (data delayed): Response — within the business day
+
+4. ESCALATION PATH
+   [Not specified — to be completed]
+
+5. RECOVERY TIME OBJECTIVE (RTO)
+   [Blank]
+
+6. ON-CALL CONTACT
+   Primary: TBC
+   Secondary: TBC
+
+7. REPORTING
+   Monthly uptime report to be shared with the client.
+
+CRITICAL GAPS IN THIS DOCUMENT:
+- "As soon as possible" is not an SLA — it must be a specific time (e.g. 30 minutes)
+- Escalation path is completely blank — who gets called when P1 escalates?
+- RTO is blank — without this, the client has no recovery guarantee
+- On-call contacts are TBC — a live SLA with no named contacts is not a usable document`,
+      },
     ],
     2: [
       { title: 'Incident report — pipeline failures week of Day 1', type: 'report', urgency: 'high', description: 'Write a formal incident report covering the Day 1 pipeline failures. Include: timeline, root cause, impact assessment, resolution, and preventive measures. This will go to the CTO.', xp: 45, due_offset_mins: 90, project_ref: 'nexus-pipeline-v2', kpi_tag: 'reliability' },

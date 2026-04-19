@@ -36,6 +36,63 @@ export const CURRICULUM: Curriculum = {
     1: [
       { title: 'Campaign performance: 72-hour review post budget reallocation', type: 'report', urgency: 'high', description: 'It\'s been 72 hours since the budget reallocation. Write a performance review: ROAS by ad set, CPC trends, impressions change, and whether the reallocation has improved results. Include a recommendation for next steps.', xp: 35, due_offset_mins: 60, project_ref: 'q1-growth-campaign', kpi_tag: 'quality' },
       { title: 'Marketing ops: fix the UTM tagging inconsistency', type: 'document', urgency: 'high', description: 'Daniel Yeboah has flagged that UTM tags are inconsistent across campaigns, causing attribution errors. Write a UTM naming convention document, apply it to all current campaigns, and document the rollout plan.', xp: 30, due_offset_mins: 90, project_ref: 'q1-growth-campaign', kpi_tag: 'reliability' },
+      {
+        title: 'Review Daniel\'s campaign report',
+        type: 'report', urgency: 'high',
+        description: 'Daniel Yeboah has submitted the Q1 campaign performance report ahead of the marketing review meeting. James has asked you to sanity-check it before it goes to the leadership team. Check the numbers carefully — there may be an error in the totals.',
+        xp: 30, due_offset_mins: 60, project_ref: 'q1-growth-campaign', kpi_tag: 'quality',
+        artefact_type: 'table',
+        artefact_title: 'Q1 Campaign Performance Report — Daniel Yeboah',
+        artefact_content: `| Channel | Conversions | ROAS |
+| --- | --- | --- |
+| Google Ads | 847 | 3.8x |
+| LinkedIn | 89 | 1.2x |
+| Email | 156 | — |
+| **Total** | **1,092** | — |
+
+⚠ ERROR IN THIS REPORT:
+43 conversions were touched by both Google Ads and Email (tracked in both channels due to a UTM attribution error).
+These 43 conversions have been double-counted — appearing in both the Google Ads total and the Email total.
+The correct total is 1,049, not 1,092.
+The Google Ads ROAS of 3.8x is also overstated as a result — the attributed revenue includes conversions that should be partially credited to Email.
+This must be corrected before the report is presented to leadership.`,
+      },
+      {
+        title: 'Review Yemi\'s brand brief',
+        type: 'report', urgency: 'high',
+        description: 'Yemi Adeyinka has submitted the creative brief for the brand refresh. The creative agency needs it signed off by end of week. James wants your review before he approves it — check it is complete and ready for the agency to act on.',
+        xp: 30, due_offset_mins: 90, project_ref: 'nexus-product-launch', kpi_tag: 'quality',
+        artefact_type: 'document',
+        artefact_title: 'Brand Refresh Creative Brief — Yemi Adeyinka',
+        artefact_content: `BRAND REFRESH CREATIVE BRIEF
+Prepared by: Yemi Adeyinka, Senior Designer
+Project: Nexus Platform Brand Refresh
+
+TARGET AUDIENCE
+Primary: VP and Director-level buyers at mid-market and enterprise B2B companies (200-2000 employees).
+Secondary: IT leads and Operations Managers who influence purchase decisions.
+
+TONE OF VOICE
+Authoritative but approachable. Confident without being arrogant. Data-led, not fluffy. Speak to outcomes, not features.
+
+VISUAL DIRECTION
+Move away from the current dark-heavy palette. Introduce a lighter, more enterprise-credible look: navy, white, and a single accent colour (teal). Typography: switch from rounded sans-serif to a geometric sans that reads as more professional.
+
+DELIVERABLES
+  - Updated logo variations (primary, reversed, favicon)
+  - Brand guidelines document (colours, fonts, spacing, tone)
+  - Website homepage redesign concept
+  - LinkedIn and paid social ad templates
+  - Email header templates
+
+---
+⚠ MISSING FROM THIS BRIEF:
+There are no success metrics defined anywhere in this document.
+How will we know if the brand refresh has worked?
+The brief does not state: target brand recall uplift, NPS change, website conversion rate improvement, or any other measurable outcome.
+Without success metrics, the agency has no benchmark to design towards and the business cannot evaluate ROI on this investment.
+Success metrics must be defined before this brief is signed off.`,
+      },
     ],
     2: [
       { title: 'Product launch: write the launch email sequence', type: 'document', urgency: 'high', description: 'Write a 3-email launch sequence for the new product: (1) teaser — build curiosity, (2) launch — announce the feature with the key benefit, (3) follow-up — case study and CTA. Audience: existing customers who haven\'t adopted the new feature.', xp: 40, due_offset_mins: 90, project_ref: 'nexus-product-launch', kpi_tag: 'communication' },

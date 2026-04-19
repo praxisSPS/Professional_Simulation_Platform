@@ -20,6 +20,9 @@ interface Task {
   ai_feedback: string | null
   xp_earned: number
   xp_reward: number
+  artefact_type?: string | null
+  artefact_title?: string | null
+  artefact_content?: string | null
 }
 
 const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
@@ -53,6 +56,7 @@ export default function TasksClient({ tasks: initialTasks, activeSession, profil
   const [responding, setResponding] = useState<string | null>(null)
   const [responseText, setResponseText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [artefactOpen, setArtefactOpen] = useState<Record<string, boolean>>({})
   const router = useRouter()
   const supabase = createClient()
 
@@ -275,6 +279,30 @@ export default function TasksClient({ tasks: initialTasks, activeSession, profil
                   {task.description && (
                     <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.65, marginBottom: 12, whiteSpace: 'pre-wrap' }}>
                       {task.description}
+                    </div>
+                  )}
+
+                  {task.artefact_content && (
+                    <div style={{ marginBottom: 12, border: '0.5px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
+                      <button
+                        onClick={e => { e.stopPropagation(); setArtefactOpen(prev => ({ ...prev, [task.id]: !prev[task.id] })) }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '8px 12px', background: '#F1F5F9', border: 'none', cursor: 'pointer', borderBottom: artefactOpen[task.id] ? '0.5px solid #E2E8F0' : 'none' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#1F4E79', background: '#EBF3FB', border: '0.5px solid #BFDBFE', borderRadius: 4, padding: '1px 6px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+                            {task.artefact_type === 'table' ? 'Table' : 'Document'}
+                          </span>
+                          <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{task.artefact_title ?? 'Attached work'}</span>
+                        </div>
+                        <span style={{ fontSize: 10, color: '#94A3B8' }}>{artefactOpen[task.id] ? '▲ Hide' : '▼ View'}</span>
+                      </button>
+                      {artefactOpen[task.id] && (
+                        <div style={{ padding: '10px 12px', background: '#fff', maxHeight: 320, overflowY: 'auto' }}>
+                          <pre style={{ fontSize: 11, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, fontFamily: 'inherit' }}>
+                            {task.artefact_content}
+                          </pre>
+                        </div>
+                      )}
                     </div>
                   )}
 

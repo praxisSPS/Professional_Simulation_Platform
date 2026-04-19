@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, inp, lbl, ta, row, col, D } from './shared'
+import { TabBar, TaskBrief, SubmitBtn, ResultPanel, evalSubmit, ArtefactPanel, inp, lbl, ta, row, col, D } from './shared'
 
-interface Props { task: any; sessionId: string; onComplete: (result: any) => void }
+interface Props { task: any; sessionId: string; onComplete: (result: any) => void; initialTab?: string }
 
 const TABS = [
   { id: 'model',    label: 'Spreadsheet' },
@@ -484,18 +484,21 @@ ${risk}`
 
 // ── Workspace shell ────────────────────────────────────────────
 
-export default function WorkspaceFA({ task, sessionId, onComplete }: Props) {
-  const [tab, setTab] = useState('model')
+export default function WorkspaceFA({ task, sessionId, onComplete, initialTab }: Props) {
+  const [tab, setTab] = useState(initialTab ?? 'model')
   const props = { task, sessionId, onComplete }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <TaskBrief task={task} />
-      <TabBar tabs={TABS} active={tab} onChange={setTab} />
-      {tab === 'model'    && <SpreadsheetModel {...props} />}
-      {tab === 'variance' && <VarianceWriter {...props} />}
-      {tab === 'scenario' && <ScenarioModeller {...props} />}
-      {tab === 'deck'     && <PresentationBuilder {...props} />}
+    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      {task.artefact_content && <ArtefactPanel task={task} />}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+        <TaskBrief task={task} />
+        <TabBar tabs={TABS} active={tab} onChange={setTab} />
+        {tab === 'model'    && <SpreadsheetModel {...props} />}
+        {tab === 'variance' && <VarianceWriter {...props} />}
+        {tab === 'scenario' && <ScenarioModeller {...props} />}
+        {tab === 'deck'     && <PresentationBuilder {...props} />}
+      </div>
     </div>
   )
 }
