@@ -15,7 +15,8 @@ async function triggerColleagueMessage(
   sessionId: string,
   careerPath: string,
   completedTaskType: string,
-  completedTaskId: string
+  completedTaskId: string,
+  projectRef?: string
 ) {
   // Get colleague IDs that have already sent a message this session
   const { data: sentMessages } = await adminSupabase
@@ -75,6 +76,8 @@ async function triggerColleagueMessage(
       assigned_at: now.toISOString(),
       due_at: new Date(now.getTime() + template.task.due_offset_mins * 60000).toISOString(),
       linked_message_id: insertedMsg?.id ?? null,
+      project_ref: template.task.project_ref ?? projectRef ?? null,
+      kpi_tag: template.task.kpi_tag ?? null,
     })
     if (taskErr) console.error('Colleague follow-up task insert error:', taskErr)
   }
@@ -174,7 +177,7 @@ Scoring guide:
 
     // Fetch task (for title + kpi_tag) and profile together
     const [{ data: task }, { data: profile }] = await Promise.all([
-      adminSupabase.from('tasks').select('id, title, kpi_tag, assigned_at, type').eq('id', task_id).single(),
+      adminSupabase.from('tasks').select('id, title, kpi_tag, assigned_at, type, project_ref').eq('id', task_id).single(),
       adminSupabase.from('profiles').select('experience_points, career_path, current_level, organisation_id').eq('id', user.id).single(),
     ])
 
@@ -219,7 +222,8 @@ Scoring guide:
         activeSession.id,
         effectiveCareerPath,
         effectiveTaskType,
-        task_id
+        task_id,
+        (task as any)?.project_ref ?? undefined
       )
     }
 
