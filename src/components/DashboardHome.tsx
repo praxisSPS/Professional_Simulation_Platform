@@ -97,12 +97,31 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
     setLoading(false)
   }
 
+  async function requestMoreTasks() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/session/request-tasks', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        ;(window as any).espToast?.(data.error ?? 'No tasks available right now.', 'error')
+      } else {
+        const count = data.count ?? data.tasks?.length ?? 0
+        ;(window as any).espToast?.(`${count} new task${count !== 1 ? 's' : ''} assigned — check your task list`, 'success')
+        router.refresh()
+      }
+    } catch {
+      ;(window as any).espToast?.('Failed to request tasks. Try again.', 'error')
+    }
+    setLoading(false)
+  }
+
   const pendingTasks = recentTasks.filter((t: any) => !t.completed_at)
   const completedToday = recentTasks.filter((t: any) => {
     if (!t.completed_at) return false
     return new Date(t.completed_at).toDateString() === new Date().toDateString()
   })
-  const showEndDayButton = clockedIn && pendingTasks.length === 0 && completedToday.length >= 2
+  const showEndDayButton = clockedIn && pendingTasks.length === 0 && completedToday.length > 0
+  const showRequestMore = clockedIn && pendingTasks.length === 0 && completedToday.length > 0
 
   return (
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -185,6 +204,19 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
           {clockedIn ? 'You are clocked in' : 'You are not clocked in'}
         </span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          {showRequestMore && (
+            <button
+              onClick={requestMoreTasks}
+              disabled={loading}
+              style={{
+                padding: '7px 18px', border: '1px solid #E2E8F0', borderRadius: 8,
+                fontSize: 12, fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer',
+                background: '#fff', color: '#1F4E79', opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? '...' : 'Request more tasks'}
+            </button>
+          )}
           {showEndDayButton && (
             <button
               onClick={() => setShowEndDayConfirm(true)}
@@ -192,7 +224,7 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
               style={{
                 padding: '7px 18px', border: 'none', borderRadius: 8,
                 fontSize: 12, fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer',
-                background: '#1F4E79', color: '#fff', opacity: loading ? 0.6 : 1,
+                background: '#00C2A8', color: '#0A0A0F', opacity: loading ? 0.6 : 1,
               }}
             >
               {loading ? '...' : 'End day →'}

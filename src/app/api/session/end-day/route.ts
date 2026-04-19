@@ -20,19 +20,33 @@ export async function POST(req: NextRequest) {
 
   if (!session) return NextResponse.json({ error: 'No active session' }, { status: 404 })
 
-  // Get today's completed tasks for this session
-  const { data: completedTasks } = await adminSupabase
-    .from('tasks')
-    .select('id, title, type, score, xp_earned, decision_quality, completed_at, kpi_tag')
-    .eq('session_id', session.id)
-    .eq('user_id', user.id)
-    .eq('status', 'completed')
+  // Count tasks assigned and completed TODAY across ALL sessions
+  const todayStart = new Date()
+  todayStart.setUTCHours(0, 0, 0, 0)
+  const todayStartISO = todayStart.toISOString()
+
+  const [{ count: assignedTodayCount }, { data: completedTasks }] = await Promise.all([
+    adminSupabase
+      .from('tasks')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('assigned_at', todayStartISO),
+    adminSupabase
+      .from('tasks')
+      .select('id, title, type, score, xp_earned, decision_quality, completed_at, kpi_tag')
+      .eq('user_id', user.id)
+      .eq('status', 'completed')
+      .gte('completed_at', todayStartISO),
+  ])
 
   const tasks = completedTasks ?? []
+  const assignedToday = assignedTodayCount ?? 0
+  const threshold = assignedToday > 0 ? Math.ceil(assignedToday * 0.4) : 0
 
-  if (tasks.length < 2) {
+  if (tasks.length < threshold) {
+    const pct = Math.round((tasks.length / assignedToday) * 100)
     return NextResponse.json(
-      { error: 'Complete at least 2 tasks before ending the day.' },
+      { error: `Complete at least 40% of today's tasks before ending the day. You've completed ${tasks.length} of ${assignedToday} (${pct}%).` },
       { status: 400 }
     )
   }
