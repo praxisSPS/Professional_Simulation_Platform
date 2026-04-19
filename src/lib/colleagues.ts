@@ -18,6 +18,7 @@ export interface ActionTemplate {
   subject: string
   body: string
   urgency: 'urgent' | 'high' | 'normal'
+  project_ref: string
   task: FollowupTask
 }
 
@@ -26,6 +27,7 @@ export interface FeedbackTemplate {
   subject: string
   body: string
   urgency: 'normal' | 'high'
+  project_ref: string
 }
 
 export type MessageTemplate = ActionTemplate | FeedbackTemplate
@@ -51,21 +53,22 @@ const DATA_ENGINEERING: Colleague[] = [
     templates: [
       {
         kind: 'action',
-        subject: 'Quick one — Vantage Corp dashboard has stopped refreshing',
+        subject: 'Quick one — Vantage Dashboard project has stopped refreshing',
         body: `Hey,
 
-Sorry to drop this on you but the Vantage Corp dashboard stopped refreshing about 20 minutes ago. Priya's team noticed first — they're trying to pull data for a board presentation this afternoon.
+Sorry to drop this on you but the Vantage Dashboard project stopped refreshing about 20 minutes ago. Priya's team noticed first — they're trying to pull data for a board presentation this afternoon.
 
-I think it's the Nexus Pipeline v2 but I'm not sure where to start. Can you investigate and let me know your findings? Client expects a status update by 2pm.
+I think it's the Nexus Pipeline v2 feed into the Vantage Dashboard project but I'm not sure where to start. Can you investigate and let me know your findings? Client expects a status update by 2pm.
 
 Cheers
 Marcus`,
         urgency: 'urgent',
+        project_ref: 'vantage-dashboard',
         task: {
-          title: 'Marcus needs help: Vantage Corp dashboard not refreshing',
+          title: 'Investigate Vantage Dashboard project data refresh failure',
           type: 'email_reply',
           urgency: 'urgent',
-          description: 'Marcus has pinged you directly. The Vantage Corp dashboard stopped refreshing 20 minutes ago — likely a Nexus Pipeline v2 issue. Investigate and reply to Marcus with your initial findings, suspected root cause, and next steps. Client presentation is this afternoon.',
+          description: 'Marcus has pinged you directly. The Vantage Dashboard project stopped refreshing 20 minutes ago — likely a Nexus Pipeline v2 feed issue. Investigate and reply to Marcus with your initial findings, suspected root cause, and next steps. Client presentation is this afternoon.',
           xp: 35,
           due_offset_mins: 30,
           project_ref: 'vantage-dashboard',
@@ -74,20 +77,21 @@ Marcus`,
       },
       {
         kind: 'action',
-        subject: 'Client wants new revenue chart on the Vantage dashboard this sprint',
+        subject: 'Client wants new revenue chart on the Vantage Dashboard project this sprint',
         body: `Hey,
 
-Just off the phone with Priya. She wants a revenue breakdown chart added to the Vantage Corp dashboard — says it's critical for next week's board presentation.
+Just off the phone with Priya. She wants a revenue breakdown chart added to the Vantage Dashboard project — says it's critical for next week's board presentation.
 
 I know we're mid-sprint on the Nexus Pipeline v2 work but she's a key account. Can you assess the effort and tell me if it's feasible? Need to come back to her by EOD.
 
 Marcus`,
         urgency: 'high',
+        project_ref: 'vantage-dashboard',
         task: {
-          title: "Assess Priya's Vantage dashboard revenue chart request — sprint impact",
+          title: "Assess Priya's Vantage Dashboard revenue chart request — sprint impact",
           type: 'scope_decision',
           urgency: 'high',
-          description: "Marcus has committed to assessing a new Vantage Corp dashboard feature mid-sprint. Evaluate adding a revenue breakdown chart alongside the current Nexus Pipeline v2 work and respond: can it be done this sprint, or does it move to next? Include your rationale and any risks to pipeline delivery.",
+          description: "Marcus has committed to assessing a new Vantage Dashboard project feature mid-sprint. Evaluate adding a revenue breakdown chart alongside the current Nexus Pipeline v2 work and respond: can it be done this sprint, or does it move to next? Include your rationale and any risks to pipeline delivery.",
           xp: 30,
           due_offset_mins: 60,
           project_ref: 'vantage-dashboard',
@@ -99,10 +103,11 @@ Marcus`,
         subject: 'Good call on that earlier',
         body: `Hey,
 
-Just wanted to say — the way you handled that decision was spot on. Priya came back to me happy and the Vantage Corp team was satisfied with the explanation.
+Just wanted to say — the way you handled that decision was spot on. Priya came back to me happy and the Vantage Dashboard project team was satisfied with the explanation.
 
 Marcus`,
         urgency: 'normal',
+        project_ref: 'vantage-dashboard',
       },
     ],
   },
@@ -115,18 +120,19 @@ Marcus`,
     templates: [
       {
         kind: 'action',
-        subject: 'Board wants a Nexus Pipeline v2 health summary by 4pm',
-        body: `FYI — board have asked for a one-page data health summary before their 4pm call. They want: current Nexus Pipeline v2 status, Q4 data quality score, and known issues.
+        subject: 'Board wants a data quality health summary by 4pm — Data Quality Beta programme',
+        body: `FYI — board have asked for a one-page data health summary before their 4pm call. This is for the Data Quality Beta programme review. They want: current Nexus Pipeline v2 ingest status, Q4 data quality score across all feeds, and the three highest-priority known issues.
 
 You are writing it.
 
 SE`,
         urgency: 'urgent',
+        project_ref: 'data-quality-beta',
         task: {
-          title: 'Write Nexus Pipeline v2 health summary for board — 4pm deadline',
+          title: 'Write data quality health summary for board — Data Quality Beta programme (4pm)',
           type: 'document',
           urgency: 'urgent',
-          description: "Sarah needs a one-page data health summary for the board's 4pm call. Include: (1) Nexus Pipeline v2 current status, (2) Q4 data quality score, (3) known issues and mitigations. Non-technical audience — keep it clear and honest.",
+          description: "Sarah needs a one-page data health summary for the board's 4pm call as part of the Data Quality Beta programme review. Include: (1) Nexus Pipeline v2 current ingest status, (2) Q4 data quality score across all feeds, (3) three highest-priority known issues and mitigations. Non-technical audience — keep it clear and honest.",
           xp: 40,
           due_offset_mins: 25,
           project_ref: 'nexus-pipeline-v2',
@@ -135,33 +141,35 @@ SE`,
       },
       {
         kind: 'action',
-        subject: 'SQL query needed for Vantage Corp revenue analysis',
-        body: `For the record — I need a SQL query returning the top 10 customers by total revenue this quarter for the Vantage Corp dashboard. Include customer name, total spend, order count, and MoM growth %.
+        subject: 'Data Quality Beta: SQL query needed to surface customer record gaps',
+        body: `For the record — as part of the Data Quality Beta programme I need a SQL query that identifies customer records with missing or malformed data in the core fields: customer_id, email, segment, and created_at. Flag the count per field and the affected date range.
 
-Needed for the 3pm finance review.
+Needed for the 3pm data quality review with Finance.
 
 SE`,
         urgency: 'normal',
+        project_ref: 'data-quality-beta',
         task: {
-          title: 'Write SQL: top 10 customers by Q4 revenue for Vantage Corp dashboard',
+          title: 'Write SQL: identify customer record data quality gaps for Data Quality Beta programme',
           type: 'document',
           urgency: 'normal',
-          description: 'Sarah needs a SQL query for the Vantage Corp dashboard finance review: top 10 customers by revenue this quarter — customer name, total spend, order count, and MoM growth %. Add a brief comment explaining your approach and assumptions.',
+          description: 'Sarah needs a SQL query for the Data Quality Beta programme finance review: identify customer records with null or malformed values in customer_id, email, segment, and created_at. Return the count per field and affected date range. Add a brief comment explaining your approach and any assumptions.',
           xp: 25,
           due_offset_mins: 90,
-          project_ref: 'vantage-dashboard',
+          project_ref: 'nexus-pipeline-v2',
           kpi_tag: 'quality',
         },
       },
       {
         kind: 'feedback',
-        subject: 'That report was solid',
-        body: `For the record — the board was happy with the analysis quality. Figures were clear and the narrative made sense to non-technical people.
+        subject: 'That Data Quality Beta report was solid',
+        body: `For the record — the board was happy with the Data Quality Beta programme analysis. Figures were clear and the narrative made sense to non-technical people.
 
 Keep that standard.
 
 SE`,
         urgency: 'normal',
+        project_ref: 'data-quality-beta',
       },
     ],
   },
@@ -174,21 +182,22 @@ SE`,
     templates: [
       {
         kind: 'action',
-        subject: 'Vantage Corp data export is broken — urgent',
+        subject: 'Vantage Dashboard project data export is broken — urgent',
         body: `Hi,
 
-Our team is trying to export last month's campaign data from the Vantage Corp dashboard but the export keeps failing with a 500 error. We have a client presentation tomorrow morning and need this data tonight.
+Our team is trying to export last month's campaign data from the Vantage Dashboard project but the export keeps failing with a 500 error. We have a client presentation tomorrow morning and need this data tonight.
 
 Can you resolve this as a priority please?
 
 Priya Shah
 Vantage Corp`,
         urgency: 'urgent',
+        project_ref: 'vantage-dashboard',
         task: {
-          title: 'Respond to Priya: Vantage Corp dashboard data export failure',
+          title: 'Respond to Priya: Vantage Dashboard project data export failure',
           type: 'email_reply',
           urgency: 'urgent',
-          description: 'Priya Shah has reported that the Vantage Corp dashboard data export is failing with a 500 error ahead of a client presentation. Draft a professional response acknowledging the issue, explaining your investigation approach (likely a Nexus Pipeline v2 connection), and providing a realistic resolution timeline.',
+          description: 'Priya Shah has reported that the Vantage Dashboard project data export is failing with a 500 error ahead of a client presentation. Draft a professional response acknowledging the issue, explaining your investigation approach (likely a Nexus Pipeline v2 connection issue), and providing a realistic resolution timeline.',
           xp: 35,
           due_offset_mins: 20,
           project_ref: 'vantage-dashboard',
@@ -197,20 +206,21 @@ Vantage Corp`,
       },
       {
         kind: 'action',
-        subject: 'Question about Q3 data discrepancy in Vantage dashboard',
+        subject: 'Q3 data discrepancy in the Vantage Dashboard project — can you investigate?',
         body: `Hi,
 
-We are reviewing the Q3 revenue figures in the Vantage Corp dashboard and there seems to be a GBP 45k discrepancy vs our internal system. Before we raise this with our CFO we wanted to check with you first.
+We are reviewing the Q3 revenue figures in the Vantage Dashboard project and there seems to be a GBP 45k discrepancy vs our internal system. Before we raise this with our CFO we wanted to check with you first.
 
-Could you investigate this in the Nexus Pipeline v2 data?
+Could you investigate this? It may be a Nexus Pipeline v2 data issue.
 
 Priya Shah`,
         urgency: 'high',
+        project_ref: 'vantage-dashboard',
         task: {
-          title: 'Investigate Q3 revenue discrepancy in Vantage dashboard flagged by client',
+          title: 'Investigate Q3 revenue discrepancy in Vantage Dashboard project flagged by client',
           type: 'email_reply',
           urgency: 'high',
-          description: 'Priya Shah has flagged a GBP 45k discrepancy between Vantage Corp dashboard revenue figures and their internal system — likely a Nexus Pipeline v2 data issue. Respond professionally: acknowledge the query, explain your investigation approach, and commit to a timeframe. This will be seen by the client CFO.',
+          description: 'Priya Shah has flagged a GBP 45k discrepancy between Vantage Dashboard project revenue figures and their internal system — likely a Nexus Pipeline v2 data issue. Respond professionally: acknowledge the query, explain your investigation approach, and commit to a timeframe. This will be seen by the client CFO.',
           xp: 30,
           due_offset_mins: 45,
           project_ref: 'vantage-dashboard',
@@ -219,15 +229,16 @@ Priya Shah`,
       },
       {
         kind: 'feedback',
-        subject: 'Thank you for the quick turnaround',
+        subject: 'Thank you for the quick turnaround on the Vantage Dashboard',
         body: `Hi,
 
-Just a quick note — I appreciate how promptly you responded. The team was relieved to have a clear update.
+Just a quick note — I appreciate how promptly you responded. The team was relieved to have a clear update on the Vantage Dashboard project.
 
 This is exactly the kind of service we expect from Nexus.
 
 Priya Shah`,
         urgency: 'normal',
+        project_ref: 'vantage-dashboard',
       },
     ],
   },
@@ -240,58 +251,67 @@ Priya Shah`,
     templates: [
       {
         kind: 'action',
-        subject: 'Can you review my Q4 analysis before I send it to Sarah?',
+        subject: 'Can you review my Q4 Nexus Pipeline v2 analysis before I send it to Sarah?',
         body: `Hi,
 
-I've finished my first draft of the Q4 anomaly analysis for the Vantage Corp dashboard. Sarah said I should ask a senior analyst to sense-check before sending to the team.
-
-Here's my draft summary:
+I've finished my first draft of the Q4 anomaly analysis for the Nexus Pipeline v2 project. Sarah said I should ask a senior analyst to check it before sending. Can you take a look?
 
 ---
 Q4 DATA ANOMALY ANALYSIS — DRAFT v0.1
-Analyst: James Obi | Vantage Corp dashboard
+Analyst: James Obi | Nexus Pipeline v2 project
+Date range analysed: Q4 (October – December 2024)
+Data source: nexus_pipeline.sales_transactions
 
-Key findings:
-1. Revenue uplift concentrated in final 3 days of quarter (31 Dec spike: +£178k vs daily avg of £42k) — possible year-end pull-forward by sales team
-2. Customer segment "Enterprise" shows zero orders for weeks 3–4 of December — possible Nexus Pipeline v2 ingestion gap for this segment
-3. Three duplicate transaction IDs identified in the raw sales table: TX-4421, TX-4422, TX-4419 (combined value ~£61k)
+FINDING 1: REVENUE SPIKE — 14 December 2024
+  Daily value: £2,347,891 (Q4 daily average: £156,000)
+  Assessment: Data entry error — likely a manual test transaction or duplicate input.
+  Recommended action: Flag to data ops team for deletion before Q4 close.
 
-My conclusion: Q4 revenue is overstated by approximately £61k due to duplicates. The Enterprise segment data gap in weeks 3–4 requires further investigation before this goes to the board.
+FINDING 2: NULL VALUES — customer_id field
+  Count: 847 null records in November transactions (4.2% of Nov volume)
+  Assessment: Low priority. Likely new customer records not yet linked to accounts.
+  Recommended action: No action needed at this time.
 
-Recommendation: Rerun the Nexus Pipeline v2 ingestion for December Enterprise data and remove duplicate transactions before the Q4 close.
+FINDING 3: DUPLICATE TRANSACTION IDs
+  Found: TX-4421, TX-4422, TX-4419 (combined value ~£61k)
+  Assessment: Confirmed duplicates from the Dec pipeline ingestion run.
+  Recommended action: Remove duplicates before Q4 close reporting.
 
-Confidence level: Medium. The duplicate issue is definite. The Enterprise gap could be legitimate (no orders) or a pipeline issue — I can't tell yet.
+Overall: Q4 revenue is overstated by approximately £61k (duplicates confirmed). The Dec spike appears to be a data entry error. No structural pipeline issues identified.
+Confidence: Medium.
 ---
 
-Could you take a quick look and let me know if the logic holds? I'm not sure whether to flag the £61k overstatement directly to Sarah or handle it differently.
+Anything I've missed? I want to send this to Sarah today.
 
 James`,
         urgency: 'normal',
+        project_ref: 'nexus-pipeline-v2',
         task: {
-          title: "Review James's Q4 Vantage dashboard anomaly analysis",
+          title: "Review James's Q4 Nexus Pipeline v2 anomaly analysis — three errors to catch",
           type: 'document',
           urgency: 'normal',
-          description: "James Obi (Junior Analyst) has submitted a Q4 anomaly analysis for the Vantage Corp dashboard. His draft identifies: £61k duplicate transactions, an Enterprise segment data gap in weeks 3-4 of December, and a year-end revenue spike. Write a structured review: (1) assess whether his methodology and conclusions are sound, (2) what he's done well, (3) 2-3 specific improvements, (4) advise on how to escalate the £61k finding to Sarah.",
-          xp: 20,
-          due_offset_mins: 120,
-          project_ref: 'vantage-dashboard',
+          description: "James Obi has submitted a Q4 anomaly analysis for the Nexus Pipeline v2 project. His draft contains three significant errors. ERROR 1: The £2.3M revenue spike on 14 Dec is flagged as a 'data entry error' and marked for deletion — but this was a legitimate bulk order from Hartwell Group, clearly visible in the CRM system. Deleting it would understate Q4 revenue. ERROR 2: The 847 null values in customer_id for November transactions are flagged as 'no action needed' — but null customer_id values break the attribution pipeline downstream, causing revenue to go untracked in subsequent reporting. ERROR 3: The analysis covers 'Q4 October–December 2024' — but Q4 at Nexus Digital runs November–January, not October–December. James has analysed the wrong date range entirely. Write structured review feedback for James: identify all three errors specifically, explain why each matters and what the correct action is, and note what he has done well. Rubric: (1) did you identify all three errors with specifics?, (2) was feedback constructive and actionable for a junior analyst?, (3) was tone appropriate — supportive but clear?",
+          xp: 25,
+          due_offset_mins: 90,
+          project_ref: 'nexus-pipeline-v2',
           kpi_tag: 'quality',
         },
       },
       {
         kind: 'action',
-        subject: 'How do I write standup notes correctly for the Nexus Pipeline team?',
+        subject: 'How do I write standup notes correctly for the Nexus Pipeline v2 daily?',
         body: `Hey,
 
-Sorry to bother you — Sarah keeps saying my standup notes are too long and unfocused for the Nexus Pipeline v2 daily. Can you show me what a good standup update looks like for this team?
+Sorry to bother you — Sarah keeps saying my standup notes are too long and unfocused for the Nexus Pipeline v2 daily. Can you show me what a good standup update looks like for this project?
 
 James`,
         urgency: 'normal',
+        project_ref: 'nexus-pipeline-v2',
         task: {
           title: 'Coach James on standup format for Nexus Pipeline v2 daily',
           type: 'standup',
           urgency: 'normal',
-          description: "James Obi's standup notes are too long and unfocused for the Nexus Pipeline v2 daily meeting. Write a brief coaching note: (1) what good standup notes look like for a data engineering team, (2) a simple template, (3) a worked example. Keep it practical, not patronising.",
+          description: "James Obi's standup notes are too long and unfocused for the Nexus Pipeline v2 daily meeting. Write a brief coaching note: (1) what good standup notes look like for a data engineering team, (2) a simple template (yesterday / today / blockers), (3) a worked example relevant to pipeline work. Keep it practical, not patronising.",
           xp: 15,
           due_offset_mins: 90,
           project_ref: 'nexus-pipeline-v2',
@@ -300,15 +320,16 @@ James`,
       },
       {
         kind: 'feedback',
-        subject: 'Your standup today was much clearer',
+        subject: 'Your Nexus Pipeline v2 standup today was much clearer',
         body: `Hi,
 
-Just wanted to say — your standup notes today were much better. Concise and clear. I took notes from how you structured it.
+Just wanted to say — your standup notes today on the Nexus Pipeline v2 daily were much better. Concise and clear. I took notes from how you structured it.
 
 Thanks for the help earlier.
 
 James`,
         urgency: 'normal',
+        project_ref: 'nexus-pipeline-v2',
       },
     ],
   },
@@ -321,21 +342,22 @@ James`,
     templates: [
       {
         kind: 'action',
-        subject: 'Cost report for Nexus Pipeline v2 infra spend needed',
+        subject: 'Cost report for Nexus Pipeline v2 infrastructure spend needed',
         body: `Hi,
 
-I'm putting together the Q4 cost review and need a breakdown of the Nexus Pipeline v2 infrastructure spend — cloud hosting, tooling licences, and API costs — by product line if possible.
+I'm putting together the Q4 cost review and need a breakdown of the Nexus Pipeline v2 project infrastructure spend — cloud hosting, tooling licences, and API costs — by product line if possible.
 
 Finance review is Friday.
 
 Rachel Mensah
 Finance BP`,
         urgency: 'normal',
+        project_ref: 'nexus-pipeline-v2',
         task: {
           title: 'Prepare Nexus Pipeline v2 infra cost breakdown for Finance',
           type: 'report',
           urgency: 'normal',
-          description: 'Rachel Mensah (Finance BP) needs a breakdown of Q4 Nexus Pipeline v2 infrastructure spend by category: cloud hosting, tooling licences, and API costs. Break down by product line where possible. Note any unexpected cost spikes and flag savings opportunities.',
+          description: 'Rachel Mensah (Finance BP) needs a breakdown of Q4 Nexus Pipeline v2 project infrastructure spend by category: cloud hosting, tooling licences, and API costs. Break down by product line where possible. Note any unexpected cost spikes and flag savings opportunities.',
           xp: 25,
           due_offset_mins: 180,
           project_ref: 'nexus-pipeline-v2',
@@ -344,18 +366,19 @@ Finance BP`,
       },
       {
         kind: 'action',
-        subject: 'Nexus Pipeline v2 cloud overspend — need explanation',
+        subject: 'Nexus Pipeline v2 cloud overspend — need explanation before I close the books',
         body: `Hi,
 
-I've flagged a 23% overspend on cloud costs for the Nexus Pipeline v2 vs Q4 budget. I need an explanation from the data team before I close the books. Can you give me a brief summary of what drove this?
+I've flagged a 23% overspend on cloud costs for the Nexus Pipeline v2 project vs Q4 budget. I need an explanation from the data team before I close the books. Can you give me a brief summary of what drove this?
 
 Rachel`,
         urgency: 'high',
+        project_ref: 'nexus-pipeline-v2',
         task: {
           title: 'Explain Nexus Pipeline v2 Q4 cloud overspend to Finance',
           type: 'report',
           urgency: 'high',
-          description: 'Rachel from Finance has flagged a 23% overspend on Nexus Pipeline v2 cloud costs vs Q4 budget. Write a brief explanation: (1) main drivers (was it the pipeline failures causing re-runs?), (2) one-off vs recurring costs, (3) proposed remediation or Q1 forecast adjustment. Be factual and clear.',
+          description: 'Rachel from Finance has flagged a 23% overspend on Nexus Pipeline v2 project cloud costs vs Q4 budget. Write a brief explanation: (1) main drivers (was it the pipeline failures causing re-runs?), (2) one-off vs recurring costs, (3) proposed remediation or Q1 forecast adjustment. Be factual and clear.',
           xp: 30,
           due_offset_mins: 60,
           project_ref: 'nexus-pipeline-v2',
@@ -364,15 +387,16 @@ Rachel`,
       },
       {
         kind: 'feedback',
-        subject: 'Report received — thank you',
+        subject: 'Nexus Pipeline v2 cost report received — thank you',
         body: `Hi,
 
-Thanks for the report — it had everything I needed and was easy to follow. The cost breakdown by product line was particularly helpful.
+Thanks for the Nexus Pipeline v2 report — it had everything I needed and was easy to follow. The cost breakdown by product line was particularly helpful.
 
 I'll include it in the Q4 review pack.
 
 Rachel`,
         urgency: 'normal',
+        project_ref: 'nexus-pipeline-v2',
       },
     ],
   },
@@ -390,59 +414,62 @@ const RELIABILITY_ENGINEERING: Colleague[] = [
     templates: [
       {
         kind: 'action',
-        subject: 'Need an explanation of the Line 2 stoppage for the ops meeting',
+        subject: 'Need an explanation of the Line 2 stoppage (Compressor 2 maintenance issue) for ops meeting',
         body: `Hi,
 
-I need a written explanation of today's Line 2 stoppage for my 3pm ops meeting. Production lost 2.5 hours on the Line 2 reliability programme and the ops director is going to ask me what happened.
+I need a written explanation of today's Line 2 stoppage for my 3pm ops meeting. Production lost 2.5 hours and the ops director is going to ask me what happened. I understand it's related to the Compressor 2 maintenance programme.
 
 I need: what failed, why, how long it took to fix, and what prevents a recurrence. Keep it factual — no jargon.
 
 David`,
         urgency: 'urgent',
+        project_ref: 'compressor-2-maint',
         task: {
-          title: 'Write Line 2 stoppage explanation for David',
+          title: 'Write Line 2 stoppage explanation (Compressor 2 maintenance programme) for David',
           type: 'email_reply',
           urgency: 'urgent',
-          description: "David Okafor (Production Manager) needs a factual explanation of today's Line 2 stoppage for the ops meeting. Draft a clear response covering: what failed, root cause, resolution time, and preventive measures. Keep it non-technical — David is production, not maintenance.",
+          description: "David Okafor (Production Manager) needs a factual explanation of today's Line 2 stoppage — linked to the Compressor 2 maintenance programme — for the ops meeting. Draft a clear response covering: what failed, root cause, resolution time, and preventive measures. Keep it non-technical — David is production, not maintenance.",
           xp: 30,
           due_offset_mins: 30,
-          project_ref: 'line-2-reliability',
+          project_ref: 'compressor-2-maint',
           kpi_tag: 'communication',
         },
       },
       {
         kind: 'action',
-        subject: 'Production wants to run through the weekend — is the Line 2 kit safe?',
+        subject: 'Production wants to run through the weekend — is the Compressor 2 kit safe?',
         body: `Hi,
 
 We're being asked to run a weekend production shift due to a large order. Before I commit I need your assessment of whether the key equipment is fit to run for 16 hours Saturday.
 
-Specifically Compressor 2 and the Line 3 conveyor — given everything that's happened on the Line 2 reliability programme this week. Give me your honest view.
+Specifically Compressor 2 (given the ongoing Compressor 2 maintenance programme) and the Line 3 conveyor. Give me your honest view.
 
 David`,
         urgency: 'high',
+        project_ref: 'compressor-2-maint',
         task: {
-          title: 'Equipment fitness-to-run assessment for weekend shift — Line 2 and Compressor 2',
+          title: 'Equipment fitness-to-run assessment for weekend shift — Compressor 2 and Line 3',
           type: 'decision',
           urgency: 'high',
-          description: 'David needs your engineering assessment of whether Compressor 2 and the Line 3 conveyor are safe to run a 16-hour weekend shift. Review current equipment status from the Line 2 reliability programme, recent defect history, and outstanding work orders. Provide a clear go/no-go recommendation with your reasoning.',
+          description: 'David needs your engineering assessment of whether Compressor 2 (current Compressor 2 maintenance programme status) and the Line 3 conveyor are safe to run a 16-hour weekend shift. Review current equipment status, recent defect history, and outstanding work orders. Provide a clear go/no-go recommendation with your reasoning.',
           xp: 40,
           due_offset_mins: 45,
-          project_ref: 'line-2-reliability',
+          project_ref: 'compressor-2-maint',
           kpi_tag: 'quality',
         },
       },
       {
         kind: 'feedback',
-        subject: 'Good response on the Line 2 stoppage',
+        subject: 'Good response on the Compressor 2 stoppage',
         body: `Hi,
 
-Thanks for the clear write-up. The ops director was satisfied and it helped deflect some of the pressure from my team.
+Thanks for the clear write-up on the Compressor 2 maintenance issue. The ops director was satisfied and it helped deflect some of the pressure from my team.
 
 Keep communicating like that — it makes my job easier.
 
 David`,
         urgency: 'normal',
+        project_ref: 'compressor-2-maint',
       },
     ],
   },
@@ -455,55 +482,58 @@ David`,
     templates: [
       {
         kind: 'action',
-        subject: 'Line 2 reliability programme: PM backlog report needed before Friday',
+        subject: 'Pasteuriser PM programme: backlog recovery report needed before Friday',
         body: `Hi,
 
-I need a full PM backlog report for the Line 2 reliability programme before Friday's engineering review. Include all overdue work orders, age of each overdue task, and your proposed recovery schedule.
+I need a full PM backlog recovery report for the Pasteuriser PM programme before Friday's engineering review. Include all overdue work orders on Pasteuriser 1, age of each overdue task, and your proposed recovery schedule.
 
 I need to show the plant manager we have a plan.
 
 MK`,
         urgency: 'high',
+        project_ref: 'pasteuriser-pm',
         task: {
-          title: 'Write Line 2 PM backlog recovery report for Friday',
+          title: 'Write Pasteuriser PM programme backlog recovery report for Friday',
           type: 'report',
           urgency: 'high',
-          description: 'Mike needs a PM backlog report for the Line 2 reliability programme for the engineering review. List all overdue work orders, their age, root cause of the backlog, and a realistic recovery schedule. The plant manager will see this — it needs to be credible, not optimistic.',
+          description: 'Mike needs a PM backlog recovery report for the Pasteuriser PM programme for the engineering review. List all overdue Pasteuriser 1 work orders, their age, root cause of the backlog, and a realistic recovery schedule. The plant manager will see this — it needs to be credible, not optimistic.',
           xp: 35,
           due_offset_mins: 120,
-          project_ref: 'line-2-reliability',
+          project_ref: 'pasteuriser-pm',
           kpi_tag: 'reliability',
         },
       },
       {
         kind: 'action',
-        subject: 'Update the risk register with Compressor 2 and Pasteuriser 1 issues',
+        subject: 'Update the risk register — Compressor 2 oil leak and Pasteuriser 1 PM backlog',
         body: `Hi,
 
-After today's events I need the risk register updated before end of shift. Add: Compressor 2 oil leak (risk level and monitoring plan) and the Pasteuriser 1 PM backlog (risk of failure if not cleared this week).
+After today's events I need the risk register updated before end of shift. Add: Compressor 2 oil leak (risk level and monitoring plan from the Compressor 2 maintenance programme) and the Pasteuriser 1 PM backlog from the Pasteuriser PM programme (risk of failure if not cleared this week).
 
 MK`,
         urgency: 'normal',
+        project_ref: 'pasteuriser-pm',
         task: {
-          title: 'Update risk register with Compressor 2 maintenance and Pasteuriser 1 PM backlog',
+          title: 'Update risk register with Compressor 2 maintenance and Pasteuriser PM backlog',
           type: 'document',
           urgency: 'normal',
-          description: 'Mike has asked you to update the maintenance risk register with two new entries: (1) Compressor 2 oil leak — risk level, current status from the compressor-2-maint programme, and monitoring plan; (2) Pasteuriser 1 PM backlog — failure risk if not cleared this week. Be specific and honest about severity.',
+          description: 'Mike has asked you to update the maintenance risk register with two new entries: (1) Compressor 2 oil leak (Compressor 2 maintenance programme) — risk level, current status, and monitoring plan; (2) Pasteuriser 1 PM backlog (Pasteuriser PM programme) — failure risk if not cleared this week. Be specific and honest about severity.',
           xp: 20,
           due_offset_mins: 60,
-          project_ref: 'compressor-2-maint',
+          project_ref: 'pasteuriser-pm',
           kpi_tag: 'quality',
         },
       },
       {
         kind: 'feedback',
-        subject: 'Good shift today',
+        subject: 'Good shift today — Pasteuriser PM and Compressor sorted',
         body: `Hi,
 
-Just to say — you handled today well. The Line 2 bearing was dealt with quickly and your documentation was clear. David was happy with the communication too.
+Just to say — you handled today well. The Pasteuriser PM backlog was dealt with methodically and your documentation on the Compressor 2 maintenance programme was clear. David was happy with the communication too.
 
 MK`,
         urgency: 'normal',
+        project_ref: 'pasteuriser-pm',
       },
     ],
   },
@@ -516,57 +546,60 @@ MK`,
     templates: [
       {
         kind: 'action',
-        subject: 'Near miss report required — Compressor 2 oil leak',
+        subject: 'Near-miss report required — Pasteuriser 1 gearbox overheat during PM inspection',
         body: `Hi,
 
-The Compressor 2 oil leak falls within our near-miss reporting threshold under the compressor-2-maint programme. I need a completed near-miss report form before end of shift. This is a regulatory requirement.
+During today's Pasteuriser PM programme inspection, the gearbox overheat event falls within our near-miss reporting threshold. I need a completed near-miss report form before end of shift — this is a regulatory requirement.
 
-Template is on the H&S shared drive.
+Template is on the H&S shared drive. Reference the Pasteuriser PM programme work order in your report.
 
 Sandra`,
         urgency: 'urgent',
+        project_ref: 'pasteuriser-pm',
         task: {
-          title: 'Complete near-miss report for Compressor 2 oil leak',
+          title: 'Complete near-miss report for Pasteuriser 1 gearbox overheat',
           type: 'document',
           urgency: 'urgent',
-          description: 'Sandra Nwosu (H&S Manager) has flagged that the Compressor 2 oil leak requires a near-miss report under regulatory requirements. Write the near-miss report covering: incident description, contributory factors, immediate actions taken, and preventive measures. Be thorough — this is a legal document.',
+          description: 'Sandra Nwosu (H&S Manager) has flagged that a Pasteuriser 1 gearbox overheat event during the Pasteuriser PM programme requires a near-miss report. Write the near-miss report covering: incident description, contributory factors (was PM overdue the contributing cause?), immediate actions taken, and preventive measures. This is a legal document — be thorough.',
           xp: 25,
           due_offset_mins: 40,
-          project_ref: 'compressor-2-maint',
+          project_ref: 'pasteuriser-pm',
           kpi_tag: 'quality',
         },
       },
       {
         kind: 'action',
-        subject: 'H&S review of the Line 2 bearing replacement LOTO procedure',
+        subject: 'H&S review of the Pasteuriser 1 PM LOTO procedure — confirmation needed',
         body: `Hi,
 
-Following today's bearing replacement on Line 2, I need your confirmation that the LOTO procedure was followed correctly. Please write me a brief record of the safety steps taken.
+Following today's Pasteuriser PM programme maintenance window, I need your confirmation that the LOTO procedure was followed correctly. Please write me a brief record of the safety steps taken.
 
-This is for the Line 2 reliability programme audit trail.
+This is for the Pasteuriser PM programme audit trail.
 
 Sandra`,
         urgency: 'normal',
+        project_ref: 'pasteuriser-pm',
         task: {
-          title: 'Document LOTO compliance for Line 2 bearing replacement',
+          title: 'Document LOTO compliance for Pasteuriser 1 PM maintenance window',
           type: 'decision',
           urgency: 'normal',
-          description: "Sandra Nwosu needs a written record confirming the lockout/tagout (LOTO) procedure was correctly followed during today's Line 2 bearing replacement. Document each step taken, who authorised the work, and how equipment was made safe. This is for the Line 2 reliability programme regulatory audit trail.",
+          description: "Sandra Nwosu needs a written record confirming the lockout/tagout (LOTO) procedure was correctly followed during today's Pasteuriser PM programme maintenance window. Document each step taken, who authorised the work, and how equipment was made safe. This is for the Pasteuriser PM programme regulatory audit trail.",
           xp: 20,
           due_offset_mins: 90,
-          project_ref: 'line-2-reliability',
+          project_ref: 'pasteuriser-pm',
           kpi_tag: 'reliability',
         },
       },
       {
         kind: 'feedback',
-        subject: 'Near-miss report was well completed',
+        subject: 'Pasteuriser PM near-miss report was well completed',
         body: `Hi,
 
-Thank you for submitting the near-miss report on time and with the required level of detail. The corrective actions section was particularly thorough.
+Thank you for submitting the Pasteuriser PM programme near-miss report on time and with the required level of detail. The corrective actions section was particularly thorough.
 
 Sandra`,
         urgency: 'normal',
+        project_ref: 'pasteuriser-pm',
       },
     ],
   },
@@ -579,40 +612,65 @@ Sandra`,
     templates: [
       {
         kind: 'action',
-        subject: 'Confused about the Pasteuriser 1 PM plan — which tasks first?',
+        subject: 'Night shift handover notes for Line 2 Reliability programme — can you check before I submit to Mike?',
         body: `Hi,
 
-Mike asked me to start on the Pasteuriser 1 PM work tomorrow morning as part of the PM backlog recovery. But I'm not sure which tasks to prioritise within the 30-minute window. Can you tell me what to do first?
+Just finished my night shift. I've written up my handover notes for Mike but it's only my third solo shift on the Line 2 Reliability programme and I want to make sure I haven't missed anything. Can you check?
+
+---
+NIGHT SHIFT HANDOVER NOTES
+Technician: Kwame Asante | 22:00–06:00 | Line 2 Reliability programme
+
+Equipment readings and status:
+
+Conveyor 3, Line 2:  Bearing replacement completed 23:15. Running normal. Oil temp 72°C. No issues. ✓
+Pasteuriser 1:       PM tasks overdue — PM-1032 (gasket inspection) and PM-1033 (temp probe calibration). Flagged for morning shift. ✓
+Compressor 2:        Oil leak contained, temporary shaft seal holding. Pressure 6.2 bar (normal range). Monitoring every 30 mins. ✓
+Boiler Room:         Temperature 84°C, pressure nominal. No anomalies noted. ✓
+
+Actions completed this shift:
+— Line 2 bearing replacement log updated in CMMS (Work Order #WO-2841)
+— Compressor 2 oil sample collected and labelled for analysis
+
+Outstanding for morning shift:
+— Pasteuriser 1 PM backlog tasks (PM-1032, PM-1033)
+— Compressor 2 continuous monitoring until permanent seal repair
+
+---
+
+Looks complete to me. Anything I've missed?
 
 Kwame`,
         urgency: 'normal',
+        project_ref: 'line-2-reliability',
         task: {
-          title: 'Give Kwame clear instructions for Pasteuriser 1 PM window',
-          type: 'standup',
+          title: "Review Kwame's Line 2 Reliability programme night shift handover — identify missing entry",
+          type: 'document',
           urgency: 'normal',
-          description: 'Kwame Asante (Junior Technician) needs clear prioritisation for the 30-minute Pasteuriser 1 PM window tomorrow morning as part of the pasteuriser-pm backlog recovery. Write brief instructions: which tasks to complete first, what tools he will need, safety precautions, and how to report completion. Be clear — he is junior.',
-          xp: 15,
+          description: "Kwame Asante (Junior Technician) has submitted his night shift handover notes for the Line 2 Reliability programme and asked you to review them before he submits to Mike. The notes look professional but are missing one significant item: at 05:30, steam trap ST-04 in the Boiler Room was making an unusual knocking noise that Kwame noticed but did not log. Unlogged equipment anomalies are a maintenance safety issue and a compliance risk — if the steam trap fails unannounced on the next shift, there is no audit trail. Review the handover notes, identify the missing entry, and respond with: (1) what is missing specifically (ST-04 steam trap noise at 05:30), (2) why logging equipment anomalies matters even when they seem minor, (3) what action to take now (log ST-04 anomaly in CMMS immediately and flag for inspection). Rubric: (1) did you identify the specific missing item?, (2) was feedback constructive and actionable?, (3) was tone appropriate for a junior technician on their third solo shift?",
+          xp: 20,
           due_offset_mins: 60,
-          project_ref: 'pasteuriser-pm',
-          kpi_tag: 'communication',
+          project_ref: 'line-2-reliability',
+          kpi_tag: 'reliability',
         },
       },
       {
         kind: 'action',
-        subject: 'I found something on Conveyor 4 — should I report it to the Line 2 programme?',
+        subject: 'I found something on Conveyor 4 — should I report it to the Line 2 Reliability programme?',
         body: `Hi,
 
-While I was checking Line 3 I noticed some unusual wear on the Conveyor 4 drive chain — looks similar to what happened on Conveyor 3 last week. I'm not sure if it's serious enough to log on the Line 2 reliability programme.
+While I was checking Line 3 I noticed some unusual wear on the Conveyor 4 drive chain — looks similar to what happened on Conveyor 3 last week before the bearing failure on the Line 2 Reliability programme.
 
-Can you have a look and tell me what to do?
+I'm not sure if it's serious enough to log. Can you have a look and tell me what to do?
 
 Kwame`,
         urgency: 'normal',
+        project_ref: 'line-2-reliability',
         task: {
-          title: 'Assess Conveyor 4 drive chain wear — coach Kwame',
+          title: 'Assess Conveyor 4 drive chain wear — coach Kwame on escalation',
           type: 'decision',
           urgency: 'normal',
-          description: "Kwame has flagged unusual wear on the Conveyor 4 drive chain, similar to the Conveyor 3 failure that triggered the Line 2 reliability programme. Assess the severity and respond: (1) whether this warrants an immediate work order on the Line 2 programme, (2) what monitoring should be done, (3) coach Kwame on how to assess drive chain wear himself in future.",
+          description: "Kwame has flagged unusual wear on the Conveyor 4 drive chain, similar to the Conveyor 3 failure that triggered the Line 2 Reliability programme. Assess the severity and respond: (1) whether this warrants an immediate work order on the Line 2 Reliability programme, (2) what monitoring should be done, (3) coach Kwame on how to assess drive chain wear himself in future so he can make the call independently.",
           xp: 25,
           due_offset_mins: 90,
           project_ref: 'line-2-reliability',
@@ -621,13 +679,14 @@ Kwame`,
       },
       {
         kind: 'feedback',
-        subject: 'Thanks for the clear instructions earlier',
+        subject: 'Good handover notes on the Line 2 Reliability programme shift',
         body: `Hi,
 
-The Pasteuriser 1 PM went well this morning — I knew exactly what to do because of your instructions. Completed both tasks within the 30-minute window.
+The Line 2 Reliability programme handover was clear this morning — I knew exactly what was outstanding and what had been done. That's the standard.
 
 Kwame`,
         urgency: 'normal',
+        project_ref: 'line-2-reliability',
       },
     ],
   },
@@ -640,18 +699,19 @@ Kwame`,
     templates: [
       {
         kind: 'action',
-        subject: 'Emergency bearing order for Line 2 — need your spec now',
+        subject: 'Emergency bearing order for Line 2 Reliability programme — need your spec now',
         body: `Hi,
 
-I can get a bearing delivered by 6am tomorrow for the Line 2 reliability programme but I need your exact specification in the next 30 minutes or I'll miss the supplier's cut-off. Part number, tolerance grade, and quantity.
+I can get a bearing delivered by 6am tomorrow for the Line 2 Reliability programme but I need your exact specification in the next 30 minutes or I'll miss the supplier's cut-off. Part number, tolerance grade, and quantity.
 
 Tony`,
         urgency: 'urgent',
+        project_ref: 'line-2-reliability',
         task: {
-          title: 'Provide bearing specification to Tony for emergency Line 2 order',
+          title: 'Provide bearing specification to Tony for emergency Line 2 Reliability programme order',
           type: 'scope_decision',
           urgency: 'urgent',
-          description: 'Tony Briggs (Procurement) needs the exact bearing specification within 30 minutes to place an emergency order for the Line 2 reliability programme. Provide: part number, bearing type, tolerance grade, dimensions, and quantity. Also flag acceptable alternatives in case the exact spec is unavailable.',
+          description: 'Tony Briggs (Procurement) needs the exact bearing specification within 30 minutes to place an emergency order for the Line 2 Reliability programme. Provide: part number, bearing type, tolerance grade, dimensions, and quantity. Also flag acceptable alternatives in case the exact spec is unavailable.',
           xp: 30,
           due_offset_mins: 25,
           project_ref: 'line-2-reliability',
@@ -660,18 +720,19 @@ Tony`,
       },
       {
         kind: 'action',
-        subject: 'Should we dual-source the bearing supplier after this Line 2 emergency?',
+        subject: 'Should we dual-source bearings after the Line 2 Reliability programme emergency?',
         body: `Hi,
 
-After today's scramble on the Line 2 reliability programme I think we should look at dual-sourcing the main drive bearings so we're not dependent on one supplier for emergency orders. Can you give me your view on what we should hold as on-site spares vs what we order on-demand?
+After today's scramble on the Line 2 Reliability programme I think we should look at dual-sourcing the main drive bearings so we're not dependent on one supplier for emergency orders. Can you give me your view on what we should hold as on-site spares vs what we order on-demand?
 
 Tony`,
         urgency: 'normal',
+        project_ref: 'line-2-reliability',
         task: {
-          title: 'Write spares stockholding recommendation for Line 2 and Procurement',
+          title: 'Write spares stockholding recommendation for Line 2 Reliability programme',
           type: 'scope_decision',
           urgency: 'normal',
-          description: 'Tony Briggs has asked for your recommendation on spare parts stockholding strategy for the Line 2 reliability programme. Consider: cost of holding spares vs downtime risk (at GBP 4,200/hour), which bearings are most critical for Line 2, lead times. Write a clear recommendation with justification.',
+          description: 'Tony Briggs has asked for your recommendation on spare parts stockholding strategy following the Line 2 Reliability programme emergency. Consider: cost of holding spares vs downtime risk (at GBP 4,200/hour), which bearings are most critical for Line 2, lead times from current suppliers. Write a clear recommendation with justification.',
           xp: 25,
           due_offset_mins: 120,
           project_ref: 'line-2-reliability',
@@ -680,13 +741,14 @@ Tony`,
       },
       {
         kind: 'feedback',
-        subject: 'Good spec — order is placed',
+        subject: 'Good spec — Line 2 Reliability programme order is placed',
         body: `Hi,
 
-Bearing spec was exactly what I needed. Order placed and confirmed for 6am delivery. Well done for having the detail to hand.
+Bearing spec was exactly what I needed for the Line 2 Reliability programme emergency. Order placed and confirmed for 6am delivery. Well done for having the detail to hand.
 
 Tony`,
         urgency: 'normal',
+        project_ref: 'line-2-reliability',
       },
     ],
   },
@@ -704,20 +766,21 @@ const FINANCIAL_ANALYSIS: Colleague[] = [
     templates: [
       {
         kind: 'action',
-        subject: 'Q4 close board pack exec summary — I need it by 4pm',
+        subject: 'Q4 Close project board pack exec summary — I need it by 4pm',
         body: `Hi,
 
-I need a one-page executive summary of your Q4 close variance analysis for the board pack. It must include: (1) headline finding, (2) top 3 drivers of the profit decline, (3) one recommendation.
+I need a one-page executive summary of your Q4 Close project variance analysis for the board pack. It must include: (1) headline finding, (2) top 3 drivers of the profit variance, (3) one recommendation.
 
 Board pack locks at 4pm. Do not miss it.
 
 AO`,
         urgency: 'urgent',
+        project_ref: 'q4-close',
         task: {
-          title: 'Write CFO exec summary for Q4 close board pack — 4pm deadline',
+          title: 'Write CFO exec summary for Q4 Close project board pack — 4pm deadline',
           type: 'document',
           urgency: 'urgent',
-          description: 'Amara needs a one-page executive summary of your Q4 close variance analysis for the board pack. Include: (1) headline finding, (2) top 3 drivers of the profit decline, (3) one concrete recommendation. Board pack locks at 4pm — be concise, precise, and boardroom-ready.',
+          description: 'Amara needs a one-page executive summary of your Q4 Close project variance analysis for the board pack. Include: (1) headline finding, (2) top 3 drivers of the profit variance, (3) one concrete recommendation. Board pack locks at 4pm — be concise, precise, and boardroom-ready.',
           xp: 45,
           due_offset_mins: 25,
           project_ref: 'q4-close',
@@ -726,20 +789,21 @@ AO`,
       },
       {
         kind: 'action',
-        subject: 'Product launch model: downside scenario needs refreshing — FX assumptions changed',
+        subject: 'Product Launch financial model: downside scenario needs refreshing — FX assumptions changed',
         body: `Hi,
 
-The macro team have revised their FX assumptions for the product launch financial model. I need the downside scenario refreshed to reflect a 12% GBP/USD decline instead of 8%.
+The macro team have revised their FX assumptions for the Product Launch financial model. I need the downside scenario refreshed to reflect a 12% GBP/USD decline instead of 8%.
 
 Board meeting is tomorrow. How quickly can you turn this around?
 
 AO`,
         urgency: 'urgent',
+        project_ref: 'q4-close',
         task: {
-          title: 'Refresh product launch downside scenario with revised FX assumptions',
+          title: 'Refresh Product Launch financial model downside scenario with revised FX assumptions',
           type: 'report',
           urgency: 'urgent',
-          description: 'Amara needs the product launch financial model downside scenario refreshed: FX assumption changes from 8% to 12% GBP/USD decline. Update the model and document: (1) updated downside revenue and EBITDA, (2) sensitivity to the change, (3) any other assumptions you reviewed. Board meeting is tomorrow.',
+          description: 'Amara needs the Product Launch financial model downside scenario refreshed: FX assumption changes from 8% to 12% GBP/USD decline. Update the model and document: (1) updated downside revenue and EBITDA, (2) sensitivity to the change, (3) any other assumptions you reviewed. Board meeting is tomorrow.',
           xp: 40,
           due_offset_mins: 60,
           project_ref: 'product-launch-fa',
@@ -748,13 +812,14 @@ AO`,
       },
       {
         kind: 'feedback',
-        subject: 'The board was pleased with the Q4 close analysis',
+        subject: 'The board was pleased with the Q4 Close project analysis',
         body: `Hi,
 
-The board found your Q4 close analysis clear and well-structured. The commentary on the drivers was particularly good — it saved me having to explain it myself.
+The board found your Q4 Close project analysis clear and well-structured. The commentary on the drivers was particularly good — it saved me having to explain it myself.
 
 AO`,
         urgency: 'normal',
+        project_ref: 'q4-close',
       },
     ],
   },
@@ -767,18 +832,45 @@ AO`,
     templates: [
       {
         kind: 'action',
-        subject: 'Q4 close: month-end actuals need your narrative commentary',
+        subject: 'Q4 Close project variance analysis — can you check my overhead section?',
         body: `Hi,
 
-I've loaded the Q4 close month-end actuals into the system but Amara wants narrative commentary on the key variances by tomorrow morning. Can you draft the commentary for the three biggest line items?
+I've drafted the Q4 Close project variance analysis summary. Amara wants narrative commentary but before I send it can you check the overhead allocation section — I'm not confident I've used the right headcount number.
+
+---
+Q4 CLOSE PROJECT — VARIANCE ANALYSIS DRAFT v1
+Prepared by: Daniel Yeboah, FP&A
+
+                    Budget      Actual      Variance    % Var
+Revenue             £4,200K     £4,800K     +£600K      +14.3%
+  → Hartwell Group contract (Nov): £620K upfront revenue recognition
+
+COGS                £1,900K     £2,400K     –£500K      –26.3%
+  → Supplier raw material costs up 18%; expedited freight charges
+
+Gross Margin        54.8%       50.0%       –4.8pp
+  → Margin compression primarily due to supplier cost increases
+
+Overheads           £890K       £920K       –£30K       –3.4%
+  → Allocation basis: 142 FTE @ £6,268/FTE
+  → I used last year's approved headcount from the Q4 Close budget model
+
+Note: I believe someone mentioned we're now at 158 FTE but I wasn't sure which figure to use for the actuals. I defaulted to the budgeted headcount.
+
+Gross Profit        £2,300K     £2,400K     +£100K      +4.3%
+EBITDA: broadly in line with budget.
+---
+
+Does the overhead section look right to you?
 
 Daniel`,
         urgency: 'high',
+        project_ref: 'q4-close',
         task: {
-          title: 'Write Q4 close month-end variance commentary for Amara',
+          title: "Review Daniel's Q4 Close project variance analysis — headcount error to catch",
           type: 'report',
           urgency: 'high',
-          description: 'Daniel has loaded Q4 close month-end actuals and Amara wants narrative commentary on the three largest variances. Write clear, concise commentary for each: what drove the variance, whether it is one-off or recurring, and the implication for the full-year forecast. This goes to the CFO.',
+          description: "Daniel Yeboah has drafted a Q4 Close project variance analysis that contains a material error in the overhead allocation. He has used last year's budgeted headcount of 142 FTE instead of the current actual headcount of 158 FTE. At his own allocation rate of £6,268/FTE, this understates overhead by approximately £187K (16 additional FTE × £6,268). The correct overhead figure should be approximately £1,107K, not £920K — meaning gross profit is actually closer to £2,213K, not £2,400K, and gross margin is worse than his draft shows. Review Daniel's draft: (1) identify the headcount error specifically — name the incorrect number (142 FTE), the correct number (158 FTE), and the approximate financial impact (£187K understatement), (2) explain the correct approach (actuals analysis must use current actual headcount, not the prior year budget), (3) note what he has done well. Rubric: (1) did you identify the specific headcount error and quantify the impact?, (2) was feedback constructive and actionable?, (3) was tone appropriate for a junior FP&A colleague?",
           xp: 35,
           due_offset_mins: 90,
           project_ref: 'q4-close',
@@ -787,13 +879,13 @@ Daniel`,
       },
       {
         kind: 'action',
-        subject: 'Product launch model — your base case revenue assumption looks off',
+        subject: 'Product Launch financial model — your base case revenue assumption looks off',
         body: `Hi,
 
-I noticed your product launch model base case assumes 8% revenue growth. Our latest pipeline data is tracking closer to 5–6%. I pulled the numbers:
+I noticed your Product Launch financial model base case assumes 8% revenue growth. Our latest pipeline data is tracking closer to 5–6%. I pulled the numbers:
 
 ---
-PRODUCT LAUNCH MODEL — BASE CASE REVIEW
+PRODUCT LAUNCH FINANCIAL MODEL — BASE CASE REVIEW
 Prepared by: Daniel Yeboah, FP&A
 
 Current base case assumption: 8.0% revenue growth
@@ -813,11 +905,12 @@ I think the assumption needs revisiting before it goes to the board. Worth a sec
 
 Daniel`,
         urgency: 'normal',
+        project_ref: 'q4-close',
         task: {
-          title: 'Review and defend product launch model revenue growth assumption',
+          title: 'Review and defend Product Launch financial model revenue growth assumption',
           type: 'report',
           urgency: 'normal',
-          description: "Daniel has challenged the 8% revenue growth assumption in the product launch model base case, presenting pipeline data suggesting 5–6% is more realistic. His analysis shows a potential –£0.8M revenue and –£0.5M EBITDA impact if revised. Review the assumption, assess both positions, and write a clear response to Daniel (copying Amara) explaining your conclusion and rationale.",
+          description: "Daniel has challenged the 8% revenue growth assumption in the Product Launch financial model base case, presenting pipeline data suggesting 5–6% is more realistic. His analysis shows a potential –£0.8M revenue and –£0.5M EBITDA impact if revised. Review the assumption, assess both positions, and write a clear response to Daniel (copying Amara) explaining your conclusion and rationale.",
           xp: 30,
           due_offset_mins: 120,
           project_ref: 'product-launch-fa',
@@ -826,15 +919,16 @@ Daniel`,
       },
       {
         kind: 'feedback',
-        subject: 'Strong work on the Q4 variance analysis',
+        subject: 'Strong work on the Q4 Close project variance analysis',
         body: `Hi,
 
-Just read through your Q4 close variance analysis — the waterfall bridge was clear and the commentary was honest about the shortfalls. Amara specifically mentioned it.
+Just read through your Q4 Close project variance analysis — the waterfall bridge was clear and the commentary was honest about the shortfalls. Amara specifically mentioned it.
 
 Good work.
 
 Daniel`,
         urgency: 'normal',
+        project_ref: 'q4-close',
       },
     ],
   },
@@ -847,20 +941,21 @@ Daniel`,
     templates: [
       {
         kind: 'action',
-        subject: 'Should we approve the marketing budget uplift for the product launch?',
+        subject: 'Should we approve the marketing budget uplift for the Product Launch financial model?',
         body: `Hi,
 
-Marketing have requested a GBP 180k budget uplift for Q1 paid media to support the product launch financial model. They're projecting a 3x return. Amara has asked me to get a second opinion before she signs it off.
+Marketing have requested a GBP 180k budget uplift for Q1 paid media to support the Product Launch financial model. They're projecting a 3x return. Amara has asked me to get a second opinion before she signs it off.
 
 What's your view?
 
 Priya`,
         urgency: 'high',
+        project_ref: 'product-launch-fa',
         task: {
-          title: 'Analyse and recommend on marketing budget uplift for product launch model',
+          title: 'Analyse and recommend on marketing budget uplift for Product Launch financial model',
           type: 'decision',
           urgency: 'high',
-          description: 'Amara has asked for a second opinion on a GBP 180k Q1 marketing budget uplift for the product launch model. Analyse the request: assess the credibility of the 3x return projection, identify risks, and provide a clear recommendation to Priya and Amara — approve, decline, or approve with conditions. Back your recommendation with numbers.',
+          description: 'Amara has asked for a second opinion on a GBP 180k Q1 marketing budget uplift for the Product Launch financial model. Analyse the request: assess the credibility of the 3x return projection, identify risks, and provide a clear recommendation to Priya and Amara — approve, decline, or approve with conditions. Back your recommendation with numbers.',
           xp: 40,
           due_offset_mins: 60,
           project_ref: 'product-launch-fa',
@@ -869,20 +964,21 @@ Priya`,
       },
       {
         kind: 'action',
-        subject: 'New commercial contract — financial terms need review before Q4 close',
+        subject: 'New commercial contract — financial terms need review before Q4 Close',
         body: `Hi,
 
-We have a new enterprise contract that Legal has cleared. Before Amara signs, she wants a financial review of the terms — specifically the payment schedule, penalties, and revenue recognition treatment. This needs to be resolved before the Q4 close.
+We have a new enterprise contract that Legal has cleared. Before Amara signs, she wants a financial review of the terms — specifically the payment schedule, penalties, and revenue recognition treatment. This needs to be resolved before the Q4 Close project deadline.
 
 Can you take a look?
 
 Priya`,
         urgency: 'normal',
+        project_ref: 'product-launch-fa',
         task: {
-          title: 'Review financial terms of new enterprise contract before Q4 close',
+          title: 'Review financial terms of new enterprise contract before Q4 Close project deadline',
           type: 'decision',
           urgency: 'normal',
-          description: 'Amara wants a financial review of a new enterprise contract before the Q4 close. Review: (1) payment schedule and cash flow implications, (2) penalty clauses and downside risk, (3) revenue recognition treatment under IFRS 15. Write a clear summary with your recommendation — approve, flag concerns, or request amendments.',
+          description: 'Amara wants a financial review of a new enterprise contract before the Q4 Close project deadline. Review: (1) payment schedule and cash flow implications, (2) penalty clauses and downside risk, (3) revenue recognition treatment under IFRS 15. Write a clear summary with your recommendation — approve, flag concerns, or request amendments.',
           xp: 35,
           due_offset_mins: 90,
           project_ref: 'q4-close',
@@ -891,13 +987,14 @@ Priya`,
       },
       {
         kind: 'feedback',
-        subject: 'Good analysis on that decision',
+        subject: 'Good analysis on the Product Launch financial model decision',
         body: `Hi,
 
-Your analysis was thorough and Amara appreciated the clear recommendation. The revenue recognition point was particularly astute — she hadn't spotted that.
+Your analysis was thorough and Amara appreciated the clear recommendation on the Product Launch financial model. The revenue recognition point was particularly astute — she hadn't spotted that.
 
 Priya`,
         urgency: 'normal',
+        project_ref: 'product-launch-fa',
       },
     ],
   },
@@ -910,19 +1007,20 @@ Priya`,
     templates: [
       {
         kind: 'action',
-        subject: 'Q4 close audit request — revenue recognition workings',
+        subject: 'Q4 Close project audit request — revenue recognition workings',
         body: `Hello,
 
-As part of our Q4 close year-end audit procedures I need to review the revenue recognition workings for your top 5 contracts by value. Please provide the relevant documentation and supporting schedules by Friday.
+As part of our Q4 Close project year-end audit procedures I need to review the revenue recognition workings for your top 5 contracts by value. Please provide the relevant documentation and supporting schedules by Friday.
 
 Fatima Al-Hassan
 EY`,
         urgency: 'high',
+        project_ref: 'q4-close',
         task: {
-          title: 'Prepare Q4 close revenue recognition audit pack for EY',
+          title: 'Prepare Q4 Close project revenue recognition audit pack for EY',
           type: 'document',
           urgency: 'high',
-          description: 'External auditor Fatima Al-Hassan has requested Q4 close revenue recognition workings for your top 5 contracts by value. Prepare a clear audit pack: (1) contract summary for each, (2) revenue recognition method applied, (3) key judgements and their basis, (4) supporting calculations. Audit documentation must be precise and defensible.',
+          description: 'External auditor Fatima Al-Hassan has requested Q4 Close project revenue recognition workings for your top 5 contracts by value. Prepare a clear audit pack: (1) contract summary for each, (2) revenue recognition method applied, (3) key judgements and their basis, (4) supporting calculations. Audit documentation must be precise and defensible.',
           xp: 35,
           due_offset_mins: 90,
           project_ref: 'q4-close',
@@ -931,19 +1029,20 @@ EY`,
       },
       {
         kind: 'action',
-        subject: 'Q4 close audit query — bad debt provision methodology',
+        subject: 'Q4 Close project audit query — bad debt provision methodology',
         body: `Hello,
 
-We have a query on the methodology used for the bad debt provision in the Q4 close. The current provision appears below sector benchmarks. Please provide a written explanation of the methodology and key assumptions.
+We have a query on the methodology used for the bad debt provision in the Q4 Close project. The current provision appears below sector benchmarks. Please provide a written explanation of the methodology and key assumptions.
 
 Fatima Al-Hassan
 EY`,
         urgency: 'normal',
+        project_ref: 'q4-close',
         task: {
-          title: "Respond to EY's Q4 close bad debt provision query",
+          title: "Respond to EY's Q4 Close project bad debt provision query",
           type: 'document',
           urgency: 'normal',
-          description: "EY have flagged that the Q4 close bad debt provision appears below sector benchmarks. Write a clear, defensible explanation of: (1) the methodology used, (2) the key assumptions and their basis, (3) why the provision is appropriate given the company's specific debtor profile. This is a formal audit response.",
+          description: "EY have flagged that the Q4 Close project bad debt provision appears below sector benchmarks. Write a clear, defensible explanation of: (1) the methodology used, (2) the key assumptions and their basis, (3) why the provision is appropriate given the company's specific debtor profile. This is a formal audit response.",
           xp: 30,
           due_offset_mins: 120,
           project_ref: 'q4-close',
@@ -952,14 +1051,15 @@ EY`,
       },
       {
         kind: 'feedback',
-        subject: 'Q4 close documentation received — no further queries at this stage',
+        subject: 'Q4 Close project documentation received — no further queries at this stage',
         body: `Hello,
 
-Thank you for the documentation. The revenue recognition workings were well-presented and the supporting schedules were complete. No further queries on this area at this stage.
+Thank you for the Q4 Close project documentation. The revenue recognition workings were well-presented and the supporting schedules were complete. No further queries on this area at this stage.
 
 Fatima Al-Hassan
 EY`,
         urgency: 'normal',
+        project_ref: 'q4-close',
       },
     ],
   },
@@ -972,18 +1072,19 @@ EY`,
     templates: [
       {
         kind: 'action',
-        subject: 'Can we discount this contract to win the deal? Q4 close implications?',
+        subject: 'Can we discount this contract to win the deal? Q4 Close project implications?',
         body: `Hi,
 
-We're close to landing a major new contract but the client is asking for a 15% discount. At the current margin, Finance won't like it — and it will hit the Q4 close numbers. Can you model the impact and tell me what the minimum acceptable discount is?
+We're close to landing a major new contract but the client is asking for a 15% discount. At the current margin, Finance won't like it — and it will hit the Q4 Close project numbers. Can you model the impact and tell me what the minimum acceptable discount is?
 
 Chris`,
         urgency: 'urgent',
+        project_ref: 'product-launch-fa',
         task: {
-          title: 'Model discount impact on proposed contract margin for Q4 close',
+          title: 'Model discount impact on proposed contract margin for Q4 Close project',
           type: 'scope_decision',
           urgency: 'urgent',
-          description: "Chris Okafor wants to know the minimum acceptable discount on a major contract that would affect the Q4 close. Model the P&L impact of the requested 15% discount vs current pricing: (1) margin at each discount level, (2) break-even point, (3) your recommendation — whether to accept and at what conditions. Chris needs this before tomorrow's negotiation.",
+          description: "Chris Okafor wants to know the minimum acceptable discount on a major contract that would affect the Q4 Close project. Model the P&L impact of the requested 15% discount vs current pricing: (1) margin at each discount level, (2) break-even point, (3) your recommendation — whether to accept and at what conditions. Chris needs this before tomorrow's negotiation.",
           xp: 40,
           due_offset_mins: 45,
           project_ref: 'q4-close',
@@ -992,18 +1093,19 @@ Chris`,
       },
       {
         kind: 'action',
-        subject: 'Product launch financials — do the numbers stack up before the board?',
+        subject: 'Product Launch financial model — do the numbers stack up before the board?',
         body: `Hi,
 
-We're presenting the product launch financial model business case to the board next week. Can you give me your honest view on whether the financial projections are robust? I'd rather know now than be challenged in the boardroom.
+We're presenting the Product Launch financial model business case to the board next week. Can you give me your honest view on whether the financial projections are robust? I'd rather know now than be challenged in the boardroom.
 
 Chris`,
         urgency: 'normal',
+        project_ref: 'product-launch-fa',
         task: {
-          title: 'Challenge product launch financial model projections before board',
+          title: 'Challenge Product Launch financial model projections before board',
           type: 'scope_decision',
           urgency: 'normal',
-          description: "Chris wants an honest financial review of the product launch financial model business case before the board presentation. Critique: (1) revenue assumptions — are they realistic given the Q4 close data?, (2) cost base — what's missing?, (3) the key risks the board will challenge. Write a structured brief — be direct, not diplomatic.",
+          description: "Chris wants an honest financial review of the Product Launch financial model business case before the board presentation. Critique: (1) revenue assumptions — are they realistic given the Q4 Close project data?, (2) cost base — what's missing?, (3) the key risks the board will challenge. Write a structured brief — be direct, not diplomatic.",
           xp: 30,
           due_offset_mins: 120,
           project_ref: 'product-launch-fa',
@@ -1012,13 +1114,14 @@ Chris`,
       },
       {
         kind: 'feedback',
-        subject: 'The model was exactly what I needed',
+        subject: 'The Product Launch model was exactly what I needed',
         body: `Hi,
 
-Your analysis saved us from a bad deal. We ended up pushing back on the discount and the client accepted 8%. Your break-even analysis was the reason we held firm.
+Your analysis saved us from a bad deal on the Product Launch financial model. We ended up pushing back on the discount and the client accepted 8%. Your break-even analysis was the reason we held firm.
 
 Chris`,
         urgency: 'normal',
+        project_ref: 'product-launch-fa',
       },
     ],
   },
@@ -1036,18 +1139,19 @@ const PRODUCT_MANAGEMENT: Colleague[] = [
     templates: [
       {
         kind: 'action',
-        subject: 'Nexus Platform Q1: I need your sprint backlog recommendation — now',
+        subject: 'Nexus Platform v3: I need your sprint backlog recommendation — now',
         body: `Morning,
 
-Three stakeholders, one slot on the Nexus Platform Q1 roadmap. I want your recommendation by 10am with data to back it. Don't send me a summary of the three options — tell me which one we build and why.
+Three stakeholders, one slot on the Nexus Platform v3 roadmap. I want your recommendation by 10am with data to back it. Don't send me a summary of the three options — tell me which one we build and why.
 
 JH`,
         urgency: 'urgent',
+        project_ref: 'platform-v3',
         task: {
-          title: 'Provide Nexus Platform Q1 sprint priority recommendation to James',
+          title: 'Provide Nexus Platform v3 sprint priority recommendation to James',
           type: 'decision',
           urgency: 'urgent',
-          description: "James wants a clear recommendation on which of the three competing Nexus Platform Q1 sprint backlog items to build. Write a decision brief: (1) your recommended option, (2) the data or logic that supports it, (3) how you will communicate the decision to the stakeholders whose items weren't chosen. Do not hedge.",
+          description: "James wants a clear recommendation on which of the three competing Nexus Platform v3 sprint backlog items to build. Write a decision brief: (1) your recommended option, (2) the data or logic that supports it, (3) how you will communicate the decision to the stakeholders whose items weren't chosen. Do not hedge.",
           xp: 40,
           due_offset_mins: 30,
           project_ref: 'nexus-platform-q1',
@@ -1056,18 +1160,19 @@ JH`,
       },
       {
         kind: 'action',
-        subject: 'Priya is escalating on the Vantage integration — I want a plan before she reaches the board',
+        subject: 'Priya is escalating on the Vantage Integration project — I want a plan before she reaches the board',
         body: `Hi,
 
-Priya has emailed again about the Vantage Corp integration. If we don't act today she's going to the board. I want a plan from you before 12pm: what we're doing, when she will see results, and how we get in front of the narrative.
+Priya has emailed again about the Vantage Integration project. If we don't act today she's going to the board. I want a plan from you before 12pm: what we're doing, when she will see results, and how we get in front of the narrative.
 
 JH`,
         urgency: 'urgent',
+        project_ref: 'platform-v3',
         task: {
-          title: 'Write Vantage integration escalation management plan for Priya',
+          title: 'Write Vantage Integration project escalation management plan for Priya',
           type: 'scope_decision',
           urgency: 'urgent',
-          description: "Priya Shah is threatening to escalate to the board about the delayed Vantage Corp integration feature. Write a management plan for James: (1) what we commit to delivering and by when, (2) the message we proactively send to Priya today, (3) what we need internally to deliver on the commitment. Be realistic — do not over-promise.",
+          description: "Priya Shah is threatening to escalate to the board about the delayed Vantage Integration project. Write a management plan for James: (1) what we commit to delivering and by when, (2) the message we proactively send to Priya today, (3) what we need internally to deliver on the commitment. Be realistic — do not over-promise.",
           xp: 45,
           due_offset_mins: 40,
           project_ref: 'vantage-integration',
@@ -1076,11 +1181,12 @@ JH`,
       },
       {
         kind: 'feedback',
-        subject: 'Good decision under pressure on the Q1 roadmap',
-        body: `Quick note — the way you handled the Nexus Platform Q1 sprint backlog decision was professional. Clear reasoning, and you communicated it well to the stakeholders. That's the standard I expect.
+        subject: 'Good decision under pressure on the Nexus Platform v3 roadmap',
+        body: `Quick note — the way you handled the Nexus Platform v3 sprint backlog decision was professional. Clear reasoning, and you communicated it well to the stakeholders. That's the standard I expect.
 
 JH`,
         urgency: 'normal',
+        project_ref: 'platform-v3',
       },
     ],
   },
@@ -1093,15 +1199,15 @@ JH`,
     templates: [
       {
         kind: 'action',
-        subject: 'Nexus Platform Q1: this user story is not ready for dev',
+        subject: 'Nexus Platform v3: this user story is not ready for dev',
         body: `Hi,
 
-I've read the reporting feature user story for the Nexus Platform Q1 roadmap. There are gaps — the acceptance criteria don't cover edge cases and the data source is undefined. I can't start building from this.
+I've read the reporting feature user story for the Nexus Platform v3 roadmap. There are gaps — the acceptance criteria don't cover edge cases and the data source is undefined. I can't start building from this.
 
 Here's what I have so far:
 
 ---
-USER STORY DRAFT v0.1 — Reporting Feature
+USER STORY DRAFT v0.1 — Nexus Platform v3 Reporting Feature
 Written by: James (PM)
 
 As a: dashboard user
@@ -1122,11 +1228,12 @@ Can you rewrite it to a level where I can actually estimate it?
 
 SE`,
         urgency: 'high',
+        project_ref: 'platform-v3',
         task: {
-          title: 'Rewrite Nexus Platform Q1 reporting feature user story to dev-ready standard',
+          title: 'Rewrite Nexus Platform v3 reporting feature user story to dev-ready standard',
           type: 'document',
           urgency: 'high',
-          description: "Sarah Chen (Senior Dev) has flagged that the Nexus Platform Q1 reporting feature user story is incomplete. Her draft has: vague acceptance criteria, undefined data source, no edge cases, no success metric. Rewrite it to a dev-ready standard: clear user need, full acceptance criteria covering edge cases, defined data source and API, and a worked example of the expected output. Sarah needs to estimate it — leave nothing ambiguous.",
+          description: "Sarah Chen (Senior Dev) has flagged that the Nexus Platform v3 reporting feature user story is incomplete. The draft has: vague acceptance criteria, undefined data source, no edge cases, no success metric. Rewrite it to a dev-ready standard: clear user need, full acceptance criteria covering edge cases (empty state, partial data, permissions), defined data source and API, and a worked example of the expected output. Sarah needs to estimate it — leave nothing ambiguous.",
           xp: 35,
           due_offset_mins: 60,
           project_ref: 'nexus-platform-q1',
@@ -1135,18 +1242,19 @@ SE`,
       },
       {
         kind: 'action',
-        subject: 'FYI — I am not available to build the extra Vantage integration feature Marcus agreed',
-        body: `FYI — I've just heard from Marcus that he told the Vantage Corp client we'd add a bulk export feature to the integration by Friday. I have no capacity for this and it was never on the roadmap.
+        subject: 'FYI — I am not available to build the extra Vantage Integration feature Marcus agreed',
+        body: `FYI — I've just heard from Marcus that he told the Vantage Integration project client we'd add a bulk export feature by Friday. I have no capacity for this and it was never on the Nexus Platform v3 roadmap.
 
 You need to sort this out. I'm not committing to something I wasn't consulted on.
 
 SE`,
         urgency: 'urgent',
+        project_ref: 'platform-v3',
         task: {
-          title: 'Resolve capacity conflict between Marcus and Sarah on Vantage integration',
+          title: 'Resolve capacity conflict between Marcus and Sarah on Vantage Integration project',
           type: 'scope_decision',
           urgency: 'urgent',
-          description: "Marcus has committed the Vantage Corp client to a bulk export feature by Friday without consulting the dev team. Sarah has no capacity. Resolve this professionally: (1) assess whether Friday is feasible, (2) decide what to communicate to the Vantage Corp client, (3) establish how to prevent Marcus making unilateral commitments on the integration in future.",
+          description: "Marcus has committed the Vantage Integration project client to a bulk export feature by Friday without consulting the dev team. Sarah has no capacity and the work wasn't on the Nexus Platform v3 roadmap. Resolve this professionally: (1) assess whether Friday is feasible, (2) decide what to communicate to the client, (3) establish how to prevent Marcus making unilateral commitments in future.",
           xp: 40,
           due_offset_mins: 30,
           project_ref: 'vantage-integration',
@@ -1155,13 +1263,14 @@ SE`,
       },
       {
         kind: 'feedback',
-        subject: 'Nexus Platform Q1 user story was much better',
+        subject: 'Nexus Platform v3 user story was much better',
         body: `Hi,
 
-The revised user story was clear enough to estimate. Acceptance criteria were specific and the edge cases were covered. That's the standard we need.
+The revised Nexus Platform v3 user story was clear enough to estimate. Acceptance criteria were specific and the edge cases were covered. That's the standard we need.
 
 SE`,
         urgency: 'normal',
+        project_ref: 'platform-v3',
       },
     ],
   },
@@ -1174,20 +1283,21 @@ SE`,
     templates: [
       {
         kind: 'action',
-        subject: 'Priya is escalating the Vantage integration — need your help',
+        subject: 'Priya is escalating the Vantage Integration project (Enterprise Tier) — need your help',
         body: `Hi,
 
-Just a heads up — Priya has emailed me again about the Vantage Corp integration feature. She's not happy and mentioned going to the board.
+Just a heads up — Priya has emailed me again about the Vantage Integration project. She's not happy and mentioned going to the board about the Enterprise Tier feature delay.
 
 I know this isn't ideal timing but can you draft a response to her? I'll review before it goes. We need to get ahead of this.
 
 Marcus`,
         urgency: 'urgent',
+        project_ref: 'enterprise-tier',
         task: {
-          title: 'Draft response to Priya Shah Vantage integration escalation',
+          title: 'Draft response to Priya Shah — Vantage Integration (Enterprise Tier) escalation',
           type: 'email_reply',
           urgency: 'urgent',
-          description: "Marcus needs you to draft a response to Priya Shah who is threatening to escalate to the board about the delayed Vantage Corp integration feature. Draft a professional response that: (1) acknowledges her frustration honestly, (2) explains the delay without making excuses, (3) proposes a concrete next step with a realistic date. Marcus will review before it's sent.",
+          description: "Marcus needs you to draft a response to Priya Shah who is threatening to escalate to the board about the delayed Vantage Integration project Enterprise Tier feature. Draft a professional response that: (1) acknowledges her frustration honestly, (2) explains the delay without making excuses, (3) proposes a concrete next step with a realistic date. Marcus will review before it's sent.",
           xp: 40,
           due_offset_mins: 20,
           project_ref: 'vantage-integration',
@@ -1196,18 +1306,19 @@ Marcus`,
       },
       {
         kind: 'action',
-        subject: 'I may have over-promised a Nexus Platform demo timeline',
+        subject: 'I may have over-promised a Nexus Platform v3 Enterprise Tier demo timeline',
         body: `Hey,
 
-Okay so I may have told the prospect that we could have a live Nexus Platform Q1 demo ready by Thursday. Is that possible? I know it's tight but it's a big deal.
+Okay so I may have told the prospect that we could have a live Nexus Platform v3 Enterprise Tier demo ready by Thursday. Is that possible? I know it's tight but it's a big deal.
 
 Marcus`,
         urgency: 'high',
+        project_ref: 'enterprise-tier',
         task: {
-          title: 'Respond to Marcus about Nexus Platform demo timeline feasibility',
+          title: 'Respond to Marcus about Nexus Platform v3 Enterprise Tier demo timeline feasibility',
           type: 'email_reply',
           urgency: 'high',
-          description: "Marcus has committed to a Thursday Nexus Platform Q1 demo without checking with the product team. Respond professionally: (1) assess whether Thursday is feasible given current sprint state, (2) if not, what is the earliest realistic date, (3) advise Marcus on what he should tell the prospect. Be direct — do not just say yes to make him feel better.",
+          description: "Marcus has committed to a Thursday Nexus Platform v3 Enterprise Tier demo without checking with the product team. Respond professionally: (1) assess whether Thursday is feasible given current sprint state, (2) if not, what is the earliest realistic date, (3) advise Marcus on what he should tell the prospect. Be direct — do not just say yes to make him feel better.",
           xp: 30,
           due_offset_mins: 40,
           project_ref: 'nexus-platform-q1',
@@ -1216,15 +1327,16 @@ Marcus`,
       },
       {
         kind: 'feedback',
-        subject: 'Priya came back positively on the Vantage integration response',
+        subject: 'Priya came back positively on the Vantage Integration (Enterprise Tier) response',
         body: `Hey,
 
-Just heard from Priya — she was really happy with the response. Said it was clear, honest, and gave her what she needed to brief her board on the Vantage integration.
+Just heard from Priya — she was really happy with the response on the Vantage Integration Enterprise Tier delay. Said it was clear, honest, and gave her what she needed to brief her board.
 
 Nice work!
 
 Marcus`,
         urgency: 'normal',
+        project_ref: 'enterprise-tier',
       },
     ],
   },
@@ -1237,18 +1349,38 @@ Marcus`,
     templates: [
       {
         kind: 'action',
-        subject: 'Need a brief before I start the Nexus Platform onboarding UX',
+        subject: 'Churn Fix project — enterprise sign-up UX flow, can you check the logic before I start Figma?',
         body: `Hi,
 
-I'm ready to start the UX for the new Nexus Platform Q1 onboarding flow but I don't have a clear brief. I need: target user, the key actions they need to complete, and what success looks like. Can you write this up for me?
+I've mapped out the updated enterprise sign-up flow as part of the Churn Fix project. The idea is that a cleaner onboarding experience for enterprise users reduces early-stage churn. Before I go into Figma I want to check the logic — have I missed any edge cases?
+
+---
+CHURN FIX PROJECT — ENTERPRISE SIGN-UP FLOW v0.1
+Designer: Yemi Adeyinka
+
+Step 1: User lands on pricing page → clicks "Enterprise" plan CTA
+Step 2: User fills in company details form (company name, team size, industry, name, email)
+Step 3: User receives confirmation email: "Thank you — our enterprise team will be in touch within 2 business days"
+Step 4: Sales team reviews submission in CRM and contacts the user within 2 business days
+
+Success state: Demo booked, contract signed.
+Failure state: No response within 5 days → automated follow-up email.
+
+Edge cases covered:
+— User submits form without a business email (e.g. gmail.com): form validation rejects, prompts business email ✓
+— User submits duplicate email from a different company: "this email is already registered" error shown ✓
+---
+
+I think this covers the main scenarios. Does this look complete to you?
 
 Yemi`,
         urgency: 'normal',
+        project_ref: 'churn-fix',
         task: {
-          title: 'Write UX brief for Nexus Platform Q1 onboarding flow',
+          title: "Review Yemi's Churn Fix project enterprise sign-up UX flow — identify missing edge case",
           type: 'document',
           urgency: 'normal',
-          description: 'Yemi Adeyinka (UX Designer) needs a brief before starting the Nexus Platform Q1 onboarding flow designs. Write a clear UX brief: (1) target user persona and context, (2) key actions the user must complete in onboarding, (3) definition of success — what does a good onboarding completion look like?, (4) any constraints or non-negotiables.',
+          description: "Yemi Adeyinka (UX Designer) has mapped out an enterprise sign-up user flow for the Churn Fix project and asked for your review before she starts Figma designs. The flow has a significant missing edge case: there is no branch for users who are already logged in with a free account. A logged-in free-tier user who clicks the Enterprise CTA and fills out the form will hit a duplicate account creation error (their email is already in the system linked to their free account) instead of being routed to an upgrade flow. This is a common real-world pattern that breaks sign-up funnels. Review the flow: (1) identify the missing edge case for existing logged-in free-account users specifically, (2) propose a fix (add a branch: check session/auth state before showing the form; if logged in, redirect to account upgrade page instead), (3) note what Yemi has done well. Rubric: (1) did you identify the specific missing edge case (existing logged-in user → duplicate account error)?, (2) was your proposed fix actionable?, (3) was tone appropriate for a junior designer?",
           xp: 25,
           due_offset_mins: 90,
           project_ref: 'nexus-platform-q1',
@@ -1257,33 +1389,35 @@ Yemi`,
       },
       {
         kind: 'action',
-        subject: 'Vantage integration dashboard design review — quick turnaround needed',
+        subject: 'Churn Fix project dashboard re-engagement design — feedback needed before next iteration',
         body: `Hi,
 
-I've shared the first design mockups for the Vantage Corp integration dashboard in Figma. I need written feedback before I progress to the next iteration — specifically on the navigation structure and the data visualisation choices.
+I've shared the first design mockups for the Churn Fix project re-engagement dashboard in Figma. I need written feedback before I progress to the next iteration — specifically on the notification design and the "pick up where you left off" module placement.
 
 Yemi`,
         urgency: 'normal',
+        project_ref: 'churn-fix',
         task: {
-          title: 'Provide structured feedback on Vantage integration dashboard design mockups',
+          title: 'Provide structured feedback on Churn Fix project re-engagement dashboard mockups',
           type: 'document',
           urgency: 'normal',
-          description: "Yemi has shared design mockups for the Vantage Corp integration dashboard and needs structured written feedback. Review from a product and user perspective: (1) does the navigation structure match Priya's team's mental models?, (2) are the data visualisation choices appropriate for the target audience?, (3) three specific changes you'd prioritise.",
+          description: "Yemi has shared design mockups for the Churn Fix project re-engagement dashboard and needs structured written feedback. Review from a product and user perspective: (1) does the notification design draw attention to the right actions for re-engaging users?, (2) is the 'pick up where you left off' module placement intuitive?, (3) three specific changes you'd prioritise before the next iteration.",
           xp: 20,
           due_offset_mins: 120,
-          project_ref: 'vantage-integration',
+          project_ref: 'nexus-platform-q1',
           kpi_tag: 'quality',
         },
       },
       {
         kind: 'feedback',
-        subject: 'Brief was exactly what I needed for the Nexus Platform onboarding',
+        subject: 'Churn Fix project feedback was exactly what I needed',
         body: `Hi,
 
-Thank you for the UX brief — it was clear and gave me everything I needed to start. The user persona context was particularly helpful. Designs for the Nexus Platform onboarding are underway.
+Thank you for the Churn Fix project review — it was clear and gave me everything I needed to revise the flow. The edge case you spotted would have been a real problem in production.
 
 Yemi`,
         urgency: 'normal',
+        project_ref: 'churn-fix',
       },
     ],
   },
@@ -1296,19 +1430,20 @@ Yemi`,
     templates: [
       {
         kind: 'action',
-        subject: 'Vantage Corp integration feature still not live — I need answers',
+        subject: 'Vantage Integration Enterprise Tier feature still not live — I need answers',
         body: `Hi,
 
-The Vantage Corp integration feature promised two weeks ago is still not live. My team is blocked and I am running out of patience. I need a clear explanation of what has happened and when I can expect this resolved.
+The Vantage Integration Enterprise Tier feature promised two weeks ago is still not live. My team is blocked and I am running out of patience. I need a clear explanation of what has happened and when I can expect this resolved.
 
 Priya Shah
 Vantage Corp`,
         urgency: 'urgent',
+        project_ref: 'enterprise-tier',
         task: {
-          title: 'Respond to Priya Shah Vantage integration feature delay escalation',
+          title: 'Respond to Priya Shah — Vantage Integration Enterprise Tier feature delay escalation',
           type: 'email_reply',
           urgency: 'urgent',
-          description: "Priya Shah is escalating about a Vantage Corp integration feature that is 2 weeks late. Draft a professional response that: (1) acknowledges the delay honestly, (2) explains what caused it without being defensive, (3) gives a clear, realistic delivery date, (4) proposes interim support. James Hargreaves is copied in.",
+          description: "Priya Shah is escalating about the Vantage Integration Enterprise Tier feature that is 2 weeks late. Draft a professional response that: (1) acknowledges the delay honestly, (2) explains what caused it without being defensive, (3) gives a clear, realistic delivery date, (4) proposes interim support. James Hargreaves is copied in.",
           xp: 40,
           due_offset_mins: 20,
           project_ref: 'vantage-integration',
@@ -1317,18 +1452,19 @@ Vantage Corp`,
       },
       {
         kind: 'action',
-        subject: 'New requirement for the Vantage integration — can we add this to the current sprint?',
+        subject: 'New requirement for the Vantage Integration Enterprise Tier — can we add this to the current sprint?',
         body: `Hi,
 
-Following our last meeting I have a new requirement for the Vantage Corp integration that I believe is essential for our go-live. It should only take a day or two. Can this be added to the current sprint?
+Following our last meeting I have a new requirement for the Vantage Integration Enterprise Tier that I believe is essential for our go-live. It should only take a day or two. Can this be added to the current sprint?
 
 Priya Shah`,
         urgency: 'high',
+        project_ref: 'enterprise-tier',
         task: {
-          title: "Respond to Priya's mid-sprint Vantage integration change request",
+          title: "Respond to Priya's mid-sprint Vantage Integration Enterprise Tier change request",
           type: 'email_reply',
           urgency: 'high',
-          description: "Priya Shah has requested a mid-sprint change to the Vantage Corp integration, estimating 'a day or two'. Draft a professional response: (1) acknowledge the request, (2) explain the process for assessing mid-sprint changes and their impact on delivery, (3) either accept with clear conditions or defer to next sprint with a reason.",
+          description: "Priya Shah has requested a mid-sprint change to the Vantage Integration Enterprise Tier, estimating 'a day or two'. Draft a professional response: (1) acknowledge the request, (2) explain the process for assessing mid-sprint changes and their impact on delivery, (3) either accept with clear conditions or defer to next sprint with a reason.",
           xp: 30,
           due_offset_mins: 40,
           project_ref: 'vantage-integration',
@@ -1337,13 +1473,14 @@ Priya Shah`,
       },
       {
         kind: 'feedback',
-        subject: 'Thank you for the honest update on the Vantage integration',
+        subject: 'Thank you for the honest update on the Vantage Integration Enterprise Tier',
         body: `Hi,
 
-I appreciate the transparency in your last response about the Vantage Corp integration. It was more honest than I expected and the proposed interim solution was helpful. We can work with this timeline.
+I appreciate the transparency in your last response about the Vantage Integration Enterprise Tier. It was more honest than I expected and the proposed interim solution was helpful. We can work with this timeline.
 
 Priya Shah`,
         urgency: 'normal',
+        project_ref: 'enterprise-tier',
       },
     ],
   },
@@ -1361,7 +1498,7 @@ const PROJECT_MANAGEMENT: Colleague[] = [
     templates: [
       {
         kind: 'action',
-        subject: 'Nexus CRM rollout: I want a recovery plan before the board call',
+        subject: 'Nexus CRM rollout (CRM Implementation): I want a recovery plan before the board call',
         body: `Morning,
 
 The Amber status on the Nexus CRM rollout RAG report is going to trigger questions. I want a draft recovery plan on my desk before the 2pm board call — covering what has slipped, why, and how we get back on track.
@@ -1370,6 +1507,7 @@ One page. Be honest.
 
 JH`,
         urgency: 'urgent',
+        project_ref: 'crm-impl',
         task: {
           title: 'Write Nexus CRM rollout recovery plan for board call',
           type: 'document',
@@ -1390,6 +1528,7 @@ The Nexus CRM rollout RAID log hasn't been updated in two weeks. The board will 
 
 JH`,
         urgency: 'high',
+        project_ref: 'crm-impl',
         task: {
           title: 'Update Nexus CRM rollout RAID log with current risks',
           type: 'report',
@@ -1408,6 +1547,7 @@ JH`,
 
 JH`,
         urgency: 'normal',
+        project_ref: 'crm-impl',
       },
     ],
   },
@@ -1420,7 +1560,7 @@ JH`,
     templates: [
       {
         kind: 'action',
-        subject: 'Nexus CRM rollout change request submitted — when can we discuss?',
+        subject: 'Nexus CRM rollout (CRM Implementation) change request submitted — when can we discuss?',
         body: `Hi,
 
 We've submitted a change request for the three additional features on the Nexus CRM rollout. I understand this has timeline implications but these features are critical for our board approval of phase 2.
@@ -1430,6 +1570,7 @@ When can we discuss?
 Rachel Okonkwo
 Client PMO Lead`,
         urgency: 'high',
+        project_ref: 'crm-impl',
         task: {
           title: 'Respond to Nexus CRM rollout client change request — impact assessment',
           type: 'scope_decision',
@@ -1452,6 +1593,7 @@ Can you arrange this and confirm with me?
 
 Rachel Okonkwo`,
         urgency: 'urgent',
+        project_ref: 'crm-impl',
         task: {
           title: 'Arrange and prepare for emergency Nexus CRM rollout sponsor call',
           type: 'email_reply',
@@ -1472,6 +1614,7 @@ The call went well. The sponsor said she felt properly briefed about the Nexus C
 
 Rachel Okonkwo`,
         urgency: 'normal',
+        project_ref: 'crm-impl',
       },
     ],
   },
@@ -1484,13 +1627,14 @@ Rachel Okonkwo`,
     templates: [
       {
         kind: 'action',
-        subject: 'Nexus CRM rollout: technical risk — new scope will break the architecture',
+        subject: 'Nexus CRM rollout (CRM Implementation): technical risk — new scope will break the architecture',
         body: `Hi,
 
 I need to flag a technical risk on the Nexus CRM rollout. The three features in the change request require changes to the core data model that will take 3 weeks, not the 2 days the client thinks. If we commit to the timeline without accounting for this, we will fail.
 
 Ben`,
         urgency: 'urgent',
+        project_ref: 'crm-impl',
         task: {
           title: 'Address technical architecture risk in Nexus CRM rollout change request',
           type: 'decision',
@@ -1511,6 +1655,7 @@ We need to decide whether to build the reporting module for the Nexus CRM rollou
 
 Ben`,
         urgency: 'normal',
+        project_ref: 'crm-impl',
         task: {
           title: 'Build vs buy recommendation for Nexus CRM rollout reporting module',
           type: 'decision',
@@ -1531,6 +1676,7 @@ The decision you made on the Nexus CRM rollout architecture issue was the right 
 
 Ben`,
         urgency: 'normal',
+        project_ref: 'crm-impl',
       },
     ],
   },
@@ -1543,55 +1689,60 @@ Ben`,
     templates: [
       {
         kind: 'action',
-        subject: 'Nexus CRM rollout change request needs a formal Variation Order',
+        subject: 'EU Office project — work has started without a formal contract in place',
         body: `Hi,
 
-Any change to the Nexus CRM rollout scope needs to be formalised in a Variation Order before work begins. Without it, the client can dispute the additional cost.
+I've been made aware that the external supplier on the EU Office project has begun work without a signed contract. This is a significant commercial and legal risk.
 
-Can you draft the Variation Order for the three new features? I can review before it goes to the client.
+I need you to draft a formal Letter of Intent to bridge the gap while the full contract is finalised. It must cover: scope of work, agreed day rate, payment terms, and IP ownership. I will review before anything goes to the supplier.
 
 Sandra`,
-        urgency: 'high',
+        urgency: 'urgent',
+        project_ref: 'eu-office',
         task: {
-          title: 'Draft Variation Order for Nexus CRM rollout client change request',
+          title: 'Draft Letter of Intent for EU Office project — work started without signed contract',
           type: 'document',
-          urgency: 'high',
-          description: "Sandra needs a formal Variation Order drafted for the Nexus CRM rollout three-feature change request. Include: (1) description of the additional scope, (2) additional timeline (in working days), (3) additional cost (outline estimate), (4) impact on project completion date, (5) client approval signature block. Sandra will review before it goes to the client.",
+          urgency: 'urgent',
+          description: "Sandra Nwosu (Legal & Contracts) has flagged that an external supplier on the EU Office project has begun work without a signed contract. Draft a formal Letter of Intent to bridge the gap: (1) scope of work being carried out, (2) agreed day rate and payment terms, (3) IP ownership and confidentiality, (4) that the LOI is interim and a full contract will supersede it. Sandra will review before it goes to the supplier.",
           xp: 30,
-          due_offset_mins: 90,
+          due_offset_mins: 60,
           project_ref: 'nexus-crm-rollout',
           kpi_tag: 'quality',
         },
       },
       {
         kind: 'action',
-        subject: 'Nexus CRM rollout client communications creating contractual risk',
+        subject: 'EU Office project email chain is creating contractual risk — clarification needed',
         body: `Hi,
 
-I've been reviewing the email chain on the Nexus CRM rollout and some of the language being used is creating contractual ambiguity around deliverables. I need you to write a formal clarification email to the client to reset expectations.
+I've been reviewing the email chain on the EU Office project and some of the language being used by the team is creating contractual ambiguity around deliverables and timelines. There are implied commitments that were never formally agreed.
+
+I need you to write a formal clarification email to the supplier to reset expectations before we get further in.
 
 Sandra`,
         urgency: 'high',
+        project_ref: 'eu-office',
         task: {
-          title: 'Write contractual clarification email to Nexus CRM rollout client',
+          title: 'Write contractual clarification email to EU Office project supplier',
           type: 'document',
           urgency: 'high',
-          description: "Sandra has identified that informal email communications on the Nexus CRM rollout have created contractual ambiguity around project deliverables. Write a professional clarification email that: (1) references the contract, (2) clearly restates the agreed scope, (3) corrects any implied commitments, (4) proposes a formal sign-off of agreed scope. Must be approved by Sandra before sending.",
+          description: "Sandra has identified that informal email communications on the EU Office project have created contractual ambiguity around deliverables and timelines. Write a professional clarification email that: (1) references the agreed scope, (2) clearly restates what is and is not committed, (3) corrects any implied commitments made in previous emails, (4) proposes a formal scope sign-off meeting. Must be approved by Sandra before sending.",
           xp: 35,
-          due_offset_mins: 60,
+          due_offset_mins: 90,
           project_ref: 'nexus-crm-rollout',
           kpi_tag: 'communication',
         },
       },
       {
         kind: 'feedback',
-        subject: 'Nexus CRM rollout Variation Order was well drafted',
+        subject: 'EU Office project Letter of Intent was well drafted',
         body: `Hi,
 
-The Variation Order for the Nexus CRM rollout was well structured and covered all the necessary contractual elements. Client has signed it. We're protected.
+The Letter of Intent for the EU Office project covered all the necessary legal elements and was commercially sensible. Supplier has signed it. We're protected until the full contract is ready.
 
 Sandra`,
         urgency: 'normal',
+        project_ref: 'eu-office',
       },
     ],
   },
@@ -1604,18 +1755,19 @@ Sandra`,
     templates: [
       {
         kind: 'action',
-        subject: 'Not sure how to handle a tricky stakeholder situation on the Nexus CRM rollout',
+        subject: 'Not sure how to handle a tricky stakeholder on the Process Improvement project',
         body: `Hi,
 
-I had a difficult conversation with one of the Nexus CRM rollout workstream leads today. They pushed back on a deadline I gave them and I didn't know how to handle it. Can you advise?
+I had a difficult conversation with one of the Process Improvement project department leads today. They pushed back on a deadline I gave them and I didn't know how to handle it. It got a bit awkward. Can you advise?
 
 Kwame`,
         urgency: 'normal',
+        project_ref: 'process-improvement',
         task: {
-          title: 'Coach Kwame on stakeholder challenge management for Nexus CRM rollout',
+          title: 'Coach Kwame on stakeholder challenge management for Process Improvement project',
           type: 'standup',
           urgency: 'normal',
-          description: 'Kwame Asante (Junior PM) is struggling to handle a Nexus CRM rollout workstream lead who is pushing back on deadlines. Write a coaching response: (1) how to approach the conversation, (2) the difference between a legitimate concern and resistance, (3) how to document and escalate if needed.',
+          description: 'Kwame Asante (Junior PM) is struggling to handle a Process Improvement project department lead who is pushing back on deadlines. Write a coaching response: (1) how to approach the conversation without getting defensive, (2) the difference between a legitimate concern and resistance, (3) how to document and escalate if the pushback continues.',
           xp: 15,
           due_offset_mins: 60,
           project_ref: 'nexus-crm-rollout',
@@ -1624,40 +1776,47 @@ Kwame`,
       },
       {
         kind: 'action',
-        subject: 'Can you review my Nexus CRM rollout status update before I send it to James?',
+        subject: 'Can you review my Process Improvement project RAID log update before I send it to James?',
         body: `Hi,
 
-I've written my first Nexus CRM rollout project status update for James and I want to make sure it's in the right format and tone. Can you take a quick look before I send it?
-
-Here's my draft:
+James asked me to update the Process Improvement project RAID log. I've had a first attempt but I got stuck on R-002. Can you check it before I send?
 
 ---
-NEXUS CRM ROLLOUT — WEEK 2 STATUS UPDATE
-Author: Kwame Asante, Junior PM
+PROCESS IMPROVEMENT PROJECT — RAID LOG UPDATE
+Updated by: Kwame Asante, Junior PM | Week 4
 
-Overall status: GREEN
+RISKS:
+R-001 | Process improvement scope larger than originally estimated
+  Probability: HIGH | Impact: HIGH
+  Mitigation: Phase the rollout — pilot with 2 departments in Month 1, full rollout Month 3
+  Status: ASSESSED ✓
 
-Progress this week:
-- Had a meeting with the client on Tuesday
-- The dev team is working on things
-- Some stakeholders are happy, some not so much
-- We talked about the scope change
+R-002 | Key process owner (Sales Ops lead) going on extended leave in Week 8
+  Probability: HIGH | Impact: MEDIUM
+  Mitigation: [TO BE ASSESSED — not sure what to put here]
+  Status: NOT ASSESSED ←
 
-Risks: There might be some risks with the timeline
-Actions: Need to follow up with some people
+ISSUES:
+I-001 | External consultant delivery of process mapping documentation delayed by 1 week
+  Owner: Ben Afolabi | Due: Week 5 | Status: IN PROGRESS ✓
 
-Next week: More meetings and development work
+ASSUMPTIONS:
+A-001 | Department heads will sign off new processes within 5 working days — not yet confirmed
+
+DEPENDENCIES:
+D-001 | IT sign-off required before new workflow system is activated — received ✓
 ---
 
-I'm not sure if it's at the right level for James. Can you give me feedback?
+What should I put for R-002?
 
 Kwame`,
         urgency: 'normal',
+        project_ref: 'process-improvement',
         task: {
-          title: "Review Kwame's draft Nexus CRM rollout status update",
+          title: "Review Kwame's Process Improvement project RAID log — identify R-002 gap",
           type: 'document',
           urgency: 'normal',
-          description: "Kwame has drafted his first Nexus CRM rollout status update for the Programme Director. His draft has significant issues: the RAG status is unsupported (project is Amber, not Green), progress notes are vague, risks are unspecific, and actions have no owners or dates. Review it and write structured feedback: (1) identify the specific problems, (2) what RAG status it should actually be and why, (3) what a proper status update looks like, (4) what he should do differently next time.",
+          description: "Kwame Asante (Junior PM) has drafted a RAID log update for the Process Improvement project and asked you to review it before he sends it to James. The log has one clear gap: R-002 (Sales Ops key person going on extended leave in Week 8) has no mitigation and has been left 'TO BE ASSESSED'. This is a HIGH probability risk — leaving it blank means the project has no plan if the primary sign-off authority becomes unavailable during a critical phase. Review the RAID log: (1) identify that R-002 has no mitigation — this is the primary gap and explain why it matters, (2) propose a concrete, realistic mitigation (e.g. identify and brief a deputy decision-maker now, hold a knowledge transfer session before Week 8, document all decisions requiring Sales Ops approval), (3) note what Kwame has done well in the rest of the log. Rubric: (1) did you identify R-002 as the specific gap and explain why it matters for the project?, (2) was your proposed mitigation realistic and actionable?, (3) was tone appropriate for a junior PM still learning RAID management?",
           xp: 20,
           due_offset_mins: 90,
           project_ref: 'nexus-crm-rollout',
@@ -1666,13 +1825,14 @@ Kwame`,
       },
       {
         kind: 'feedback',
-        subject: 'Thanks for the coaching — stakeholder conversation went well',
+        subject: 'Thanks for the coaching — Process Improvement project stakeholder sorted',
         body: `Hi,
 
-I had the conversation with the Nexus CRM rollout workstream lead today using your advice. It went much better. We agreed a revised deadline and I documented it properly.
+I had the conversation with the Process Improvement project department lead today using your advice. It went much better. We agreed a revised deadline and I documented it properly this time.
 
 Kwame`,
         urgency: 'normal',
+        project_ref: 'process-improvement',
       },
     ],
   },
@@ -1690,20 +1850,21 @@ const DIGITAL_MARKETING: Colleague[] = [
     templates: [
       {
         kind: 'action',
-        subject: 'Q1 growth campaign: I need a recommendation, not a summary',
+        subject: 'Demand Gen campaign: I need a recommendation, not a summary',
         body: `Morning,
 
-I've read your Q1 growth campaign performance summary. What I actually need is a recommendation — what do we do next? Adjust the targeting? Kill one ad set? Shift budget?
+I've read your Demand Gen campaign performance summary. What I actually need is a recommendation — what do we do next? Adjust the targeting? Kill one ad set? Shift budget?
 
 Give me a decision with a rationale. 3pm.
 
 JH`,
         urgency: 'urgent',
+        project_ref: 'demand-gen',
         task: {
-          title: 'Write Q1 growth campaign optimisation recommendation for James',
+          title: 'Write Demand Gen campaign optimisation recommendation for James',
           type: 'decision',
           urgency: 'urgent',
-          description: "James wants a clear Q1 growth campaign recommendation, not more data. Write a 1-page recommendation: (1) your recommended action (specific — e.g. kill ad set 2, increase budget on set 3 by 40%), (2) the data that supports this, (3) expected impact and how you'll measure success. No hedging.",
+          description: "James wants a clear Demand Gen campaign recommendation, not more data. Write a 1-page recommendation: (1) your recommended action (specific — e.g. kill ad set 2, increase budget on set 3 by 40%), (2) the data that supports this, (3) expected impact and how you'll measure success. No hedging.",
           xp: 40,
           due_offset_mins: 30,
           project_ref: 'q1-growth-campaign',
@@ -1712,20 +1873,21 @@ JH`,
       },
       {
         kind: 'action',
-        subject: 'Q1 growth campaign performance report template is weak — rewrite it',
+        subject: 'Demand Gen campaign performance report template is weak — rewrite it',
         body: `Hi,
 
-This quarter's Q1 growth campaign performance report is harder to read than it should be. The executive summary doesn't lead with the key insight and the data is buried.
+This quarter's Demand Gen campaign performance report is harder to read than it should be. The executive summary doesn't lead with the key insight and the data is buried.
 
 Rewrite the template and apply it to this quarter's data. I want the new version to set the standard going forward.
 
 JH`,
         urgency: 'normal',
+        project_ref: 'demand-gen',
         task: {
-          title: 'Rewrite Q1 growth campaign performance report template',
+          title: 'Rewrite Demand Gen campaign performance report template',
           type: 'report',
           urgency: 'normal',
-          description: "James wants the Q1 growth campaign performance report template improved. Create a new version that: (1) leads with the key business insight (not data), (2) structures the report for executive readers, (3) makes recommendations prominent. Apply the new template to this quarter's campaign data to demonstrate the improvement.",
+          description: "James wants the Demand Gen campaign performance report template improved. Create a new version that: (1) leads with the key business insight (not data), (2) structures the report for executive readers, (3) makes recommendations prominent. Apply the new template to this quarter's campaign data to demonstrate the improvement.",
           xp: 30,
           due_offset_mins: 120,
           project_ref: 'q1-growth-campaign',
@@ -1734,11 +1896,12 @@ JH`,
       },
       {
         kind: 'feedback',
-        subject: "Q1 growth campaign: good recommendation — we're moving on it",
-        body: `Your Q1 growth campaign recommendation was clear and well-backed. We're reallocating the budget as you suggested. Let's see if the ROAS improves as predicted.
+        subject: "Demand Gen campaign: good recommendation — we're moving on it",
+        body: `Your Demand Gen campaign recommendation was clear and well-backed. We're reallocating the budget as you suggested. Let's see if the ROAS improves as predicted.
 
 JH`,
         urgency: 'normal',
+        project_ref: 'demand-gen',
       },
     ],
   },
@@ -1751,20 +1914,21 @@ JH`,
     templates: [
       {
         kind: 'action',
-        subject: 'Q1 growth campaign budget cut — how do we split it across the three ad sets?',
+        subject: 'Demand Gen campaign budget cut — how do we split it across the three ad sets?',
         body: `Hi,
 
-With the 40% Q1 growth campaign budget cut, I need a decision on how to redistribute across the three active ad sets. My view is we should kill the worst performer and consolidate, but James said to check with you first.
+With the 40% Demand Gen campaign budget cut, I need a decision on how to redistribute across the three active ad sets. My view is we should kill the worst performer and consolidate, but James said to check with you first.
 
 What do you think?
 
 Tom`,
         urgency: 'urgent',
+        project_ref: 'demand-gen',
         task: {
-          title: 'Decide how to redistribute Q1 growth campaign budget after 40% cut',
+          title: 'Decide how to redistribute Demand Gen campaign budget after 40% cut',
           type: 'decision',
           urgency: 'urgent',
-          description: 'Tom needs a decision on redistributing the Q1 growth campaign budget after a 40% cut across three ad sets. Make a clear recommendation: which ad set(s) to pause, how to reallocate the remaining budget, and the rationale. Tom will implement your recommendation.',
+          description: 'Tom needs a decision on redistributing the Demand Gen campaign budget after a 40% cut across three ad sets. Make a clear recommendation: which ad set(s) to pause, how to reallocate the remaining budget, and the rationale. Tom will implement your recommendation.',
           xp: 35,
           due_offset_mins: 30,
           project_ref: 'q1-growth-campaign',
@@ -1773,21 +1937,21 @@ Tom`,
       },
       {
         kind: 'action',
-        subject: 'Q1 growth campaign Q4 ROAS report — can you review my methodology before I send to James?',
+        subject: 'Demand Gen campaign Q4 ROAS report — can you review my methodology before I send to James?',
         body: `Hi,
 
-I've put together the Q4 ROAS report for the Q1 growth campaign but I'm not confident in the attribution model I've used. Here's what I've got so far:
+I've put together the Q4 ROAS report for the Demand Gen campaign but I'm not confident in the attribution model I've used. Here's what I've got so far:
 
 ---
-Q4 ROAS REPORT — DRAFT
-Q1 Growth Campaign | Prepared by: Tom Asiwe
+DEMAND GEN CAMPAIGN — Q4 ROAS REPORT (DRAFT)
+Prepared by: Tom Asiwe, Paid Media Specialist
 
 Attribution model used: Last-click (GA4 default)
 
 Results:
   Ad Set 1 (Paid Search): ROAS 4.2x | Spend: £12,400 | Revenue attributed: £52,080
   Ad Set 2 (Paid Social): ROAS 1.8x | Spend: £18,600 | Revenue attributed: £33,480
-  Ad Set 3 (Display): ROAS 0.9x | Spend: £6,200 | Revenue attributed: £5,580
+  Ad Set 3 (Display):     ROAS 0.9x | Spend: £6,200  | Revenue attributed: £5,580
 
 Blended ROAS: 2.6x | Total spend: £37,200 | Total revenue: £91,140
 
@@ -1800,11 +1964,12 @@ Can you review the methodology and let me know if the numbers are defensible?
 
 Tom`,
         urgency: 'normal',
+        project_ref: 'demand-gen',
         task: {
-          title: "Review Tom's Q4 ROAS report methodology for the Q1 growth campaign",
+          title: "Review Tom's Demand Gen campaign Q4 ROAS report methodology",
           type: 'report',
           urgency: 'normal',
-          description: "Tom is uncertain about the attribution model in his Q4 ROAS report for the Q1 growth campaign. His draft uses last-click attribution and shows a £22,740 discrepancy between GA4 and CRM revenue. Review the methodology: (1) is last-click attribution appropriate for this campaign mix?, (2) what is causing the GA4/CRM discrepancy?, (3) are his conclusions about Paid Search and Display correct given the attribution issue?, (4) what caveats should he include? Write a structured review he can use to strengthen the report before it goes to James.",
+          description: "Tom is uncertain about the attribution model in his Demand Gen campaign Q4 ROAS report. His draft uses last-click attribution and shows a £22,740 discrepancy between GA4 and CRM revenue. Review the methodology: (1) is last-click attribution appropriate for this campaign mix (paid search + social + display)?, (2) what is likely causing the GA4/CRM discrepancy (multi-touch overlap, attribution window mismatch, UTM tracking gaps)?, (3) are his conclusions about Paid Search and Display still correct given the attribution issue?, (4) what caveats should he include? Write a structured review he can use to strengthen the report.",
           xp: 25,
           due_offset_mins: 90,
           project_ref: 'q1-growth-campaign',
@@ -1813,13 +1978,14 @@ Tom`,
       },
       {
         kind: 'feedback',
-        subject: 'Q1 growth campaign budget reallocation is performing well',
+        subject: 'Demand Gen campaign budget reallocation is performing well',
         body: `Hi,
 
-Two days in and the consolidated budget on ad set 1 is already showing improved ROAS. Your call on killing ad set 3 was the right one.
+Two days in and the consolidated budget on ad set 1 is already showing improved ROAS. Your call on killing ad set 3 was the right one for the Demand Gen campaign.
 
 Tom`,
         urgency: 'normal',
+        project_ref: 'demand-gen',
       },
     ],
   },
@@ -1832,20 +1998,21 @@ Tom`,
     templates: [
       {
         kind: 'action',
-        subject: 'Need landing page copy for Nexus product launch — design team is waiting',
+        subject: 'Brand Refresh project: landing page hero copy needed — design team is waiting',
         body: `Hi,
 
-The design team needs the hero copy for the new Nexus product launch landing page. They're ready to start but I can't give them anything without your approval.
+The design team needs the hero copy for the Brand Refresh project landing page. They're ready to start the layout but I can't give them anything without your approval.
 
-Hero headline, subheadline, and CTA. Audience: mid-market B2B buyers. Can you write or approve something today?
+Hero headline, subheadline, and CTA. Audience: mid-market B2B buyers discovering Nexus for the first time after the brand refresh. Can you write or approve something today?
 
 Yemi`,
         urgency: 'high',
+        project_ref: 'brand-refresh',
         task: {
-          title: 'Write Nexus product launch landing page hero copy for B2B audience',
+          title: 'Write Brand Refresh project landing page hero copy for B2B audience',
           type: 'document',
           urgency: 'high',
-          description: 'Yemi needs approved Nexus product launch landing page hero copy for the design team. Write: (1) hero headline — max 8 words, benefit-led, (2) subheadline — max 20 words, expands on the headline, (3) CTA button text — max 4 words. Audience: mid-market B2B buyers. Include a brief rationale for your copy choices.',
+          description: 'Yemi needs approved Brand Refresh project landing page hero copy for the design team. Write: (1) hero headline — max 8 words, benefit-led, reflects the new brand positioning, (2) subheadline — max 20 words, expands on the headline, (3) CTA button text — max 4 words. Audience: mid-market B2B buyers encountering Nexus after the brand refresh. Include a brief rationale for your copy choices.',
           xp: 25,
           due_offset_mins: 60,
           project_ref: 'nexus-product-launch',
@@ -1854,18 +2021,19 @@ Yemi`,
       },
       {
         kind: 'action',
-        subject: 'Content brief for Nexus product launch email nurture sequence',
+        subject: 'Brand Refresh project: content brief needed for the 3-email welcome sequence',
         body: `Hi,
 
-We're building a 3-email nurture sequence for new Nexus product launch trial sign-ups. I need a content brief before I start writing. What are the three core messages we want to land in each email?
+We're building a 3-email welcome sequence for new contacts generated by the Brand Refresh project campaign. I need a content brief before I start writing — what are the three core messages we want to land, and what tone should the Brand Refresh be conveying?
 
 Yemi`,
         urgency: 'normal',
+        project_ref: 'brand-refresh',
         task: {
-          title: 'Write content brief for Nexus product launch 3-email nurture sequence',
+          title: 'Write content brief for Brand Refresh project 3-email welcome sequence',
           type: 'document',
           urgency: 'normal',
-          description: 'Yemi needs a content brief for a 3-email nurture sequence targeting new Nexus product launch trial sign-ups. Write a brief that covers: (1) the goal and audience for each email, (2) the core message or call-to-action, (3) tone — product-led, educational, or social proof-focused?, (4) what outcome you want from each email (open, click, conversion).',
+          description: 'Yemi needs a content brief for a 3-email welcome sequence targeting new contacts from the Brand Refresh project campaign. Write a brief that covers: (1) the goal and audience for each email, (2) the core message and call-to-action, (3) tone — how does it reflect the new brand positioning?, (4) what outcome you want from each email (open, click, conversion or nurture?).',
           xp: 20,
           due_offset_mins: 120,
           project_ref: 'nexus-product-launch',
@@ -1874,13 +2042,14 @@ Yemi`,
       },
       {
         kind: 'feedback',
-        subject: 'Nexus product launch copy approved — design has started',
+        subject: 'Brand Refresh project copy approved — design has started',
         body: `Hi,
 
-Design team loved the headline for the Nexus product launch — they said it was the clearest brief they'd been given in months. They've already started the layout.
+Design team loved the headline for the Brand Refresh project — they said it was the clearest brief they'd been given in months. They've already started the layout.
 
 Yemi`,
         urgency: 'normal',
+        project_ref: 'brand-refresh',
       },
     ],
   },
@@ -1893,19 +2062,20 @@ Yemi`,
     templates: [
       {
         kind: 'action',
-        subject: 'Q1 growth campaign leads are not converting — I need answers',
+        subject: 'Demand Gen campaign leads are not converting — I need answers',
         body: `Hi,
 
-We've followed up on the last 80 leads from the Q1 growth campaign paid media and the close rate is 4%. The quality is not there. Can you investigate what's happening and tell me what you're going to do about it?
+We've followed up on the last 80 leads from the Demand Gen campaign paid media and the close rate is 4%. The quality is not there. Can you investigate what's happening and tell me what you're going to do about it?
 
 Rachel Mensah
 Head of Sales`,
         urgency: 'urgent',
+        project_ref: 'demand-gen',
         task: {
-          title: 'Respond to Rachel: Q1 growth campaign paid media lead quality issue',
+          title: 'Respond to Rachel: Demand Gen campaign paid media lead quality issue',
           type: 'email_reply',
           urgency: 'urgent',
-          description: "Rachel Mensah (Head of Sales) has escalated that Q1 growth campaign paid media leads have a 4% close rate. Draft a professional response: (1) acknowledge the issue and take ownership, (2) outline what you will investigate (targeting, messaging, landing page, lead scoring), (3) propose a joint review with the sales team to align on ICP. Do not be defensive.",
+          description: "Rachel Mensah (Head of Sales) has escalated that Demand Gen campaign paid media leads have a 4% close rate. Draft a professional response: (1) acknowledge the issue and take ownership, (2) outline what you will investigate (targeting, messaging, landing page, lead scoring), (3) propose a joint review with the sales team to align on ICP. Do not be defensive.",
           xp: 35,
           due_offset_mins: 25,
           project_ref: 'q1-growth-campaign',
@@ -1914,18 +2084,19 @@ Head of Sales`,
       },
       {
         kind: 'action',
-        subject: 'Can the Q1 growth campaign support a Q1 pipeline push?',
+        subject: 'Can the Demand Gen campaign support an accelerated Q1 pipeline push?',
         body: `Hi,
 
-We're 22% behind on Q1 pipeline target and James has asked sales and marketing to come up with a joint plan. Can you put together a short campaign brief for an accelerated Q1 push using the existing Q1 growth campaign budget?
+We're 22% behind on Q1 pipeline target and James has asked sales and marketing to come up with a joint plan. Can you put together a short campaign brief for an accelerated push using the existing Demand Gen campaign budget?
 
 Rachel`,
         urgency: 'high',
+        project_ref: 'demand-gen',
         task: {
-          title: 'Write accelerated Q1 growth campaign pipeline push brief',
+          title: 'Write accelerated Demand Gen campaign pipeline push brief',
           type: 'email_reply',
           urgency: 'high',
-          description: 'Rachel needs a marketing campaign brief to support the Q1 pipeline push (22% below target) using the Q1 growth campaign budget. Draft a campaign brief: (1) campaign objective and target pipeline contribution, (2) channels and tactics, (3) timeline, (4) budget requirement. The brief will be presented to James — make it action-ready.',
+          description: 'Rachel needs a marketing campaign brief to support the Q1 pipeline push (22% below target) using the Demand Gen campaign budget. Draft a campaign brief: (1) campaign objective and target pipeline contribution, (2) channels and tactics, (3) timeline, (4) budget requirement. The brief will be presented to James — make it action-ready.',
           xp: 30,
           due_offset_mins: 60,
           project_ref: 'q1-growth-campaign',
@@ -1934,13 +2105,14 @@ Rachel`,
       },
       {
         kind: 'feedback',
-        subject: 'Q1 growth campaign lead quality has improved',
+        subject: 'Demand Gen campaign lead quality has improved',
         body: `Hi,
 
-I don't normally send emails like this but the lead quality from the last Q1 growth campaign batch was noticeably better. The team has commented on it. Whatever you changed in the targeting worked.
+I don't normally send emails like this but the lead quality from the last Demand Gen campaign batch was noticeably better. The team has commented on it. Whatever you changed in the targeting worked.
 
 Rachel Mensah`,
         urgency: 'normal',
+        project_ref: 'demand-gen',
       },
     ],
   },
@@ -1953,20 +2125,42 @@ Rachel Mensah`,
     templates: [
       {
         kind: 'action',
-        subject: 'Q1 growth campaign attribution model is giving conflicting results — help needed',
+        subject: 'Demand Gen campaign Q4 performance report — can you check the conversion numbers?',
         body: `Hi,
 
-I'm getting very different revenue attribution numbers from GA4 and our CRM for the Q1 growth campaign. GA4 says email is driving 42% of revenue; CRM says 18%. I can't present conflicting data to James.
+I've drafted the Q4 performance summary for the Demand Gen campaign ahead of James's review. I want a second pair of eyes before I send it — I'm not 100% sure the conversion totals are right.
 
-How should I approach this?
+---
+DEMAND GEN CAMPAIGN — Q4 PERFORMANCE SUMMARY (DRAFT)
+Prepared by: Daniel Yeboah, Marketing Analyst
+
+Channel               Clicks         Conversions    ROAS
+Google Ads            12,400         847            3.8x  ✓
+LinkedIn Ads          3,200          89             1.2x  ✓
+Email Campaign        18,400 sends   156            n/a   ✓
+
+Total attributed conversions: 1,092
+Total revenue attributed:     £87,360
+
+Attribution note: I noticed 43 users converted after touching both Google Ads AND an email campaign before converting. I attributed the conversion to both channels since both contributed — so Google Ads shows 847 conversions and Email shows 156, which includes those 43 people in both columns.
+
+Overall conclusions:
+  1. Google Ads is our best performing paid channel at 3.8x ROAS
+  2. LinkedIn significantly underperforms — recommend cutting budget next quarter
+  3. Email drives strong volume
+  4. Total 1,092 conversions is our best Q4 performance to date ✓
+---
+
+The total feels higher than I expected. Does the methodology look right?
 
 Daniel`,
         urgency: 'high',
+        project_ref: 'demand-gen',
         task: {
-          title: 'Help Daniel resolve Q1 growth campaign GA4 vs CRM attribution discrepancy',
+          title: "Review Daniel's Demand Gen campaign Q4 performance report — identify attribution error",
           type: 'report',
           urgency: 'high',
-          description: "Daniel Yeboah is struggling with a major Q1 growth campaign attribution discrepancy between GA4 (42% email revenue) and CRM (18%). Help him resolve this: (1) explain the likely causes (attribution windows, model differences, UTM tracking gaps), (2) recommend which figure to use for reporting and why, (3) advise on how to present the limitation to James.",
+          description: "Daniel Yeboah has drafted a Q4 performance summary for the Demand Gen campaign that contains a significant attribution error. He has double-counted 43 conversions that touched both Google Ads and Email — attributing them fully to both channels. The correct total should be 1,049 conversions, not 1,092 (a 43-conversion overcount). This error also inflates Google Ads' ROAS: the 847 figure includes those 43 shared conversions, so actual Google Ads-only conversions are 804, and ROAS should be closer to 3.6x, not 3.8x. Review Daniel's report: (1) identify the double-counting error specifically — explain that the 43 shared conversions should appear once, not twice across channels, (2) explain the correct approach (use a multi-touch attribution model that assigns fractional credit, or at minimum flag these as 'assisted' conversions in a separate column, not counted in both), (3) note whether his overall conclusion (Google Ads outperforms LinkedIn) still holds after correcting the error. Rubric: (1) did you identify the specific double-counting error and its numerical impact (43 conversions, ~0.2x ROAS inflation)?, (2) did you explain a correct attribution approach?, (3) was tone appropriate for a junior analyst colleague?",
           xp: 30,
           due_offset_mins: 60,
           project_ref: 'q1-growth-campaign',
@@ -1975,18 +2169,19 @@ Daniel`,
       },
       {
         kind: 'action',
-        subject: 'Competitor analysis needed for Q1 growth campaign strategy review',
+        subject: 'Demand Gen campaign competitor analysis needed for strategy review',
         body: `Hi,
 
-James wants a competitor marketing analysis for next week's Q1 growth campaign strategy review. I can pull the data but I need guidance on what to include and how to structure it.
+James wants a competitor marketing analysis for next week's Demand Gen campaign strategy review. I can pull the data but I need guidance on what to include and how to structure it.
 
 Daniel`,
         urgency: 'normal',
+        project_ref: 'demand-gen',
         task: {
-          title: 'Structure and commission Q1 growth campaign competitor marketing analysis',
+          title: 'Structure and commission Demand Gen campaign competitor marketing analysis',
           type: 'report',
           urgency: 'normal',
-          description: "Daniel needs direction on structuring the competitor marketing analysis for the Q1 growth campaign strategy review. Write a brief for him: (1) which competitors to include and why, (2) what dimensions to analyse (channels, messaging, positioning, campaign cadence), (3) the format and length James expects, (4) the strategic question the analysis should answer.",
+          description: "Daniel needs direction on structuring the competitor marketing analysis for the Demand Gen campaign strategy review. Write a brief for him: (1) which competitors to include and why, (2) what dimensions to analyse (channels, messaging, positioning, campaign cadence), (3) the format and length James expects, (4) the strategic question the analysis should answer for the Demand Gen campaign.",
           xp: 25,
           due_offset_mins: 120,
           project_ref: 'q1-growth-campaign',
@@ -1995,13 +2190,14 @@ Daniel`,
       },
       {
         kind: 'feedback',
-        subject: 'Q1 growth campaign attribution framework was really helpful',
+        subject: 'Demand Gen campaign attribution framework was really helpful',
         body: `Hi,
 
-The framework you gave me made the Q1 growth campaign attribution problem much clearer. I was able to explain the discrepancy to James and he was satisfied with the reasoning.
+The framework you gave me made the Demand Gen campaign attribution problem much clearer. I was able to explain the discrepancy to James and he was satisfied with the reasoning.
 
 Daniel`,
         urgency: 'normal',
+        project_ref: 'demand-gen',
       },
     ],
   },

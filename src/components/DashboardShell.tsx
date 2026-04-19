@@ -37,6 +37,7 @@ const NAV = [
   { href: '/dashboard',           label: 'Dashboard',  icon: 'grid' },
   { href: '/dashboard/inbox',     label: 'Inbox',      icon: 'mail',      badge: true },
   { href: '/dashboard/tasks',     label: 'Tasks',      icon: 'check' },
+  { href: '/dashboard/projects',  label: 'Projects',   icon: 'layers' },
   { href: '/dashboard/simulate',  label: 'Simulate',   icon: 'play' },
   { href: '/dashboard/kpis',      label: 'My KPIs',    icon: 'bar' },
   { href: '/dashboard/portfolio', label: 'Portfolio',  icon: 'star' },
@@ -54,6 +55,7 @@ function Icon({ name, size = 14 }: { name: string; size?: number }) {
     bar: <><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></>,
     star: <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>,
     briefcase: <><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" fill="none"/></>,
+    layers: <><polygon points="12,2 2,7 12,12 22,7" fill="none"/><polyline points="2,17 12,22 22,17" fill="none"/><polyline points="2,12 12,17 22,12" fill="none"/></>,
     logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none"/><polyline points="16,17 21,12 16,7" fill="none"/><line x1="21" y1="12" x2="9" y2="12" fill="none"/></>,
   }
   return (

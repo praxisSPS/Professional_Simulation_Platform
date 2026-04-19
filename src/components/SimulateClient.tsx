@@ -5,9 +5,13 @@ import { useRouter } from 'next/navigation'
 import SimTaskPanel from '@/components/SimTaskPanel'
 import dynamic from 'next/dynamic'
 
-const SQLEditor = dynamic(() => import('@/components/simulate/SQLEditor'), { ssr: false })
-const PythonEditor = dynamic(() => import('@/components/simulate/PythonEditor'), { ssr: false })
-const DiagramEditor = dynamic(() => import('@/components/simulate/DiagramEditor'), { ssr: false })
+type WP = { task: any; sessionId: string; onComplete: (result: any) => void }
+const WorkspaceDE  = dynamic<WP>(() => import('@/components/simulate/WorkspaceDE'),  { ssr: false })
+const WorkspaceRE  = dynamic<WP>(() => import('@/components/simulate/WorkspaceRE'),  { ssr: false })
+const WorkspaceFA  = dynamic<WP>(() => import('@/components/simulate/WorkspaceFA'),  { ssr: false })
+const WorkspacePM  = dynamic<WP>(() => import('@/components/simulate/WorkspacePM'),  { ssr: false })
+const WorkspacePJM = dynamic<WP>(() => import('@/components/simulate/WorkspacePJM'), { ssr: false })
+const WorkspaceDM  = dynamic<WP>(() => import('@/components/simulate/WorkspaceDM'),  { ssr: false })
 
 interface Props {
   profile: any
@@ -150,51 +154,14 @@ interface WorkspaceProps {
 }
 
 function TaskWorkspace({ task, sessionId, careerPath, onComplete }: WorkspaceProps) {
-  const [tab, setTab] = useState<'sql' | 'python' | 'diagram' | 'text'>('sql')
-  const isDataEng = careerPath === 'data_engineering'
-  const isTechnical = isDataEng
-  // Data engineering: tabbed SQL/Python/Diagram interface for all task types
-  if (isTechnical) {
-    const tabs: { id: 'sql' | 'python' | 'diagram' | 'text'; label: string }[] = [
-      { id: 'sql', label: 'SQL' },
-      { id: 'python', label: 'Python' },
-      { id: 'diagram', label: 'Architecture' },
-    ]
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Task description */}
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#E2E8F0', lineHeight: 1.3 }}>{task.title}</div>
-        <div style={{ background: '#0D1117', border: '1px solid #1E2535', borderLeft: '3px solid #00C2A8', borderRadius: '0 8px 8px 0', padding: '12px 14px', fontSize: 13, color: '#94A3B8', lineHeight: 1.7 }}>
-          {task.description}
-        </div>
-        {/* Tab bar */}
-        <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid #1E2535', paddingBottom: 0 }}>
-          {tabs.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              style={{
-                padding: '7px 16px', background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 12, fontWeight: tab === t.id ? 600 : 400,
-                color: tab === t.id ? '#00C2A8' : '#4A5568',
-                borderBottom: tab === t.id ? '2px solid #00C2A8' : '2px solid transparent',
-                marginBottom: -1,
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        {/* Active editor */}
-        <div style={{ paddingTop: 4 }}>
-          {tab === 'sql' && <SQLEditor task={task} sessionId={sessionId} onComplete={onComplete} />}
-          {tab === 'python' && <PythonEditor task={task} sessionId={sessionId} onComplete={onComplete} />}
-          {tab === 'diagram' && <DiagramEditor task={task} sessionId={sessionId} onComplete={onComplete} />}
-        </div>
-      </div>
-    )
+  const props = { task, sessionId, onComplete }
+  switch (careerPath) {
+    case 'data_engineering':        return <WorkspaceDE  {...props} />
+    case 'reliability_engineering': return <WorkspaceRE  {...props} />
+    case 'financial_analysis':      return <WorkspaceFA  {...props} />
+    case 'product_management':      return <WorkspacePM  {...props} />
+    case 'project_management':      return <WorkspacePJM {...props} />
+    case 'digital_marketing':       return <WorkspaceDM  {...props} />
+    default:                        return <SimTaskPanel task={task} sessionId={sessionId} onComplete={onComplete} />
   }
-
-  // Default: use the standard SimTaskPanel for all other career paths and task types
-  return <SimTaskPanel task={task} sessionId={sessionId} onComplete={onComplete} />
 }
