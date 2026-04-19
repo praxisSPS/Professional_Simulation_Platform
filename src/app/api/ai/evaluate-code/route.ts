@@ -33,7 +33,37 @@ export async function POST(req: NextRequest) {
   const rubricLines = (rubric ?? ['Covers all required components', 'Design is clear and correct', 'Professional quality'])
     .map((r: string, i: number) => `${i + 1}. ${r}`).join('\n')
 
-  const textPrompt = `You are an expert technical assessor for a professional workplace simulation platform.
+  const isDiagram = language === 'diagram'
+
+  const textPrompt = isDiagram
+    ? `You are an expert technical assessor for a professional workplace simulation platform.
+A junior professional has submitted an architecture diagram for the following task:
+
+Task description: "${task_description}"
+
+Scoring rubric:
+${rubricLines}
+
+Assess the diagram image provided. Evaluate it on these four dimensions:
+1. Task coverage — does the diagram address all the requirements stated in the task description?
+2. Logical soundness — are the components and their relationships coherent and technically correct?
+3. Completeness — are all required components present and correctly labelled? What is missing?
+4. Connections — are the arrows, flows, and dependencies between components correct and unambiguous?
+
+Be strict. A diagram that is partially complete should score below 70. A blank or near-blank diagram scores 0–20.
+
+Respond ONLY with valid JSON (no markdown):
+{
+  "score": <integer 0-100>,
+  "grade": "<A|B|C|D|F>",
+  "summary": "<one sentence overall assessment of the diagram>",
+  "strengths": ["<specific strength 1>", "<specific strength 2>"],
+  "issues": ["<specific gap or error 1>", "<specific gap or error 2>"],
+  "feedback": "<what a senior architect would say in a design review — direct, specific, 1-2 sentences>"
+}
+
+Scoring guide: 90-100 (A): Complete and correct, 75-89 (B): Good with minor gaps, 60-74 (C): Partially complete, 40-59 (D): Significant gaps, 0-39 (F): Does not meet requirements or near-blank`
+    : `You are an expert technical assessor for a professional workplace simulation platform.
 A junior professional has submitted a ${languageLabel} for the following task:
 
 Task description: "${task_description}"
@@ -41,7 +71,10 @@ Task description: "${task_description}"
 Scoring rubric:
 ${rubricLines}
 
-${hasCode ? `The submission:\n\`\`\`${language}\n${code}\n\`\`\`` : '(See the uploaded architecture diagram image)'}
+The submission:
+\`\`\`${language}
+${code}
+\`\`\`
 
 Score this submission strictly and professionally.
 
@@ -66,8 +99,10 @@ Scoring guide: 90-100 (A): Excellent, 75-89 (B): Good with minor issues, 60-74 (
         { inlineData: { mimeType: (image_mime_type ?? 'image/png') as any, data: image_base64 } },
         textPrompt,
       ])
-    } else {
+    } else if (hasCode) {
       result = await model.generateContent(textPrompt)
+    } else {
+      throw new Error('No content to evaluate')
     }
     const text = result.response.text().trim().replace(/```json\n?|\n?```/g, '')
     parsed = JSON.parse(text)

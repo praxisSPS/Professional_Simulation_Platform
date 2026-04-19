@@ -158,7 +158,7 @@ function TaskWorkspace({ task, sessionId, careerPath, onComplete }: WorkspacePro
     const tabs: { id: 'sql' | 'python' | 'diagram' | 'text'; label: string }[] = [
       { id: 'sql', label: 'SQL' },
       { id: 'python', label: 'Python' },
-      { id: 'diagram', label: 'Diagram' },
+      { id: 'diagram', label: 'Architecture' },
     ]
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

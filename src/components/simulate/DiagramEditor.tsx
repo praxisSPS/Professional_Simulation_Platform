@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 
 interface Props {
   task: any
@@ -8,71 +9,106 @@ interface Props {
   onComplete: (result: any) => void
 }
 
-const DEFAULT_MERMAID = `graph TD
-    A[User Request] --> B[API Gateway]
-    B --> C[Auth Service]
-    C --> D[Data Service]
-    D --> E[(Database)]
-    D --> F[Cache Layer]`
+const ExcalidrawCanvas = dynamic(
+  async () => {
+    const { Excalidraw } = await import('@excalidraw/excalidraw')
+    return { default: Excalidraw }
+  },
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{
+        height: 520, background: '#1A1B26', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', color: '#4A5568', fontSize: 13, borderRadius: 10,
+        border: '1px solid #2D3748',
+      }}>
+        Loading canvas…
+      </div>
+    ),
+  }
+)
 
-export default function DiagramEditor({ task, sessionId, onComplete }: Props) {
-  const [imageFile, setImageFile] = useState<File | null>(null)
+export default function DiagramEditor({ task, onComplete }: Props) {
+  const excalidrawAPI = useRef<any>(null)
+  const [hasDrawing, setHasDrawing] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [mermaidCode, setMermaidCode] = useState('')
-  const [mermaidSvg, setMermaidSvg] = useState<string | null>(null)
-  const [mermaidError, setMermaidError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const mermaidTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Lazy-render mermaid preview with debounce
-  useEffect(() => {
-    if (!mermaidCode.trim()) { setMermaidSvg(null); setMermaidError(null); return }
-    if (mermaidTimer.current) clearTimeout(mermaidTimer.current)
-    mermaidTimer.current = setTimeout(async () => {
-      try {
-        const mermaid = (await import('mermaid')).default
-        mermaid.initialize({ startOnLoad: false, theme: 'dark' })
-        const id = `mermaid-${Date.now()}`
-        const { svg } = await mermaid.render(id, mermaidCode.trim())
-        setMermaidSvg(svg)
-        setMermaidError(null)
-      } catch (e: any) {
-        setMermaidSvg(null)
-        setMermaidError(e?.message?.split('\n')[0] ?? 'Invalid Mermaid syntax')
-      }
-    }, 600)
-    return () => { if (mermaidTimer.current) clearTimeout(mermaidTimer.current) }
-  }, [mermaidCode])
+  const handleClear = useCallback(() => {
+    if (excalidrawAPI.current) {
+      excalidrawAPI.current.resetScene()
+      setHasDrawing(false)
+    }
+  }, [])
+
+  const handleExportPNG = useCallback(async () => {
+    if (!excalidrawAPI.current) return
+    const elements = excalidrawAPI.current.getSceneElements()
+    if (!elements.some((el: any) => !el.isDeleted)) return
+    const { exportToBlob } = await import('@excalidraw/excalidraw')
+    const blob = await exportToBlob({
+      elements,
+      appState: { ...excalidrawAPI.current.getAppState(), exportWithDarkMode: true },
+      files: excalidrawAPI.current.getFiles(),
+      mimeType: 'image/png',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'architecture-diagram.png'
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [])
 
   function handleImageFile(file: File) {
-    if (!file.type.startsWith('image/')) return
-    setImageFile(file)
-    const reader = new FileReader()
-    reader.onload = e => setImagePreview(e.target?.result as string)
-    reader.readAsDataURL(file)
-  }
-
-  function onDrop(e: React.DragEvent) {
-    e.preventDefault(); setDragging(false)
-    const file = e.dataTransfer.files[0]
-    if (file) handleImageFile(file)
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') return
+    setUploadedFile(file)
+    if (file.type !== 'application/pdf') {
+      const reader = new FileReader()
+      reader.onload = e => setImagePreview(e.target?.result as string)
+      reader.readAsDataURL(file)
+    } else {
+      setImagePreview(null)
+    }
   }
 
   async function submit() {
-    if (!imageFile && !mermaidCode.trim()) return
+    if (loading) return
     setLoading(true)
 
     let image_base64: string | null = null
     let image_mime_type: string | null = null
 
-    if (imageFile) {
-      const buf = await imageFile.arrayBuffer()
-      image_base64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
-      image_mime_type = imageFile.type
+    if (uploadedFile) {
+      const buf = await uploadedFile.arrayBuffer()
+      const bytes = new Uint8Array(buf)
+      let binary = ''
+      for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
+      image_base64 = btoa(binary)
+      image_mime_type = uploadedFile.type === 'application/pdf' ? 'image/png' : uploadedFile.type
+    } else if (excalidrawAPI.current && hasDrawing) {
+      const elements = excalidrawAPI.current.getSceneElements().filter((el: any) => !el.isDeleted)
+      if (elements.length === 0) { setLoading(false); return }
+      const { exportToBlob } = await import('@excalidraw/excalidraw')
+      const blob = await exportToBlob({
+        elements,
+        appState: { ...excalidrawAPI.current.getAppState(), exportWithDarkMode: true },
+        files: excalidrawAPI.current.getFiles(),
+        mimeType: 'image/png',
+      })
+      const buf = await blob.arrayBuffer()
+      const bytes = new Uint8Array(buf)
+      let binary = ''
+      for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
+      image_base64 = btoa(binary)
+      image_mime_type = 'image/png'
     }
+
+    if (!image_base64) { setLoading(false); return }
 
     try {
       const res = await fetch('/api/ai/evaluate-code', {
@@ -80,13 +116,14 @@ export default function DiagramEditor({ task, sessionId, onComplete }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           task_id: task.id,
-          code: mermaidCode.trim() || null,
+          code: null,
           language: 'diagram',
           task_description: task.description,
           rubric: task.rubric ?? [
-            'Architecture covers all required components',
-            'Design is appropriate for the stated requirements',
-            'Diagram is clear and well-structured',
+            'Diagram addresses all task requirements described in the brief',
+            'All required components are present and correctly labelled',
+            'Connections and relationships between components are logical and correct',
+            'Design is clear, professional, and appropriate for the stated requirements',
           ],
           image_base64,
           image_mime_type,
@@ -101,131 +138,185 @@ export default function DiagramEditor({ task, sessionId, onComplete }: Props) {
     setLoading(false)
   }
 
-  const canSubmit = (!!imageFile || !!mermaidCode.trim()) && !loading
+  const canSubmit = (hasDrawing || !!uploadedFile) && !loading
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-      {/* Header row */}
+      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Architecture Diagram</div>
-        <button
-          onClick={submit}
-          disabled={!canSubmit}
-          style={{
-            padding: '6px 18px', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 7,
-            fontSize: 12, fontWeight: 500, cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.5,
-          }}
-        >
-          {loading ? 'Evaluating…' : 'Submit Diagram ▶'}
-        </button>
-      </div>
-
-      {/* Section 1: Image upload */}
-      <div>
-        <div style={{ fontSize: 11, color: '#64748B', marginBottom: 8, fontWeight: 500 }}>
-          OPTION A — Upload diagram image <span style={{ color: '#334155' }}>(PNG / JPG from draw.io, Lucidchart, etc.)</span>
+        <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+          Architecture Diagram
         </div>
-
-        {imagePreview ? (
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imagePreview} alt="diagram" style={{ maxWidth: '100%', maxHeight: 280, borderRadius: 8, border: '1px solid #2D3748', display: 'block' }} />
-            <button
-              onClick={() => { setImageFile(null); setImagePreview(null) }}
-              style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.7)', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >✕</button>
-          </div>
-        ) : (
-          <div
-            onDragOver={e => { e.preventDefault(); setDragging(true) }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={onDrop}
-            onClick={() => fileInputRef.current?.click()}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={handleClear}
+            disabled={!hasDrawing || loading}
             style={{
-              border: `2px dashed ${dragging ? '#7C3AED' : '#2D3748'}`,
-              borderRadius: 10, padding: '28px 20px', textAlign: 'center',
-              background: dragging ? 'rgba(124,58,237,0.06)' : '#0D1117',
-              cursor: 'pointer', transition: 'border-color 0.15s, background 0.15s',
+              padding: '5px 14px', background: 'transparent', color: '#64748B',
+              border: '1px solid #2D3748', borderRadius: 6, fontSize: 11,
+              fontWeight: 500, cursor: hasDrawing && !loading ? 'pointer' : 'not-allowed',
+              opacity: hasDrawing && !loading ? 1 : 0.4,
             }}
           >
-            <div style={{ fontSize: 28, marginBottom: 8 }}>🖼</div>
-            <div style={{ fontSize: 13, color: '#4A5568', lineHeight: 1.5 }}>
-              Drag & drop your diagram here, or <span style={{ color: '#7C3AED', textDecoration: 'underline' }}>browse files</span>
-            </div>
-            <div style={{ fontSize: 11, color: '#334155', marginTop: 4 }}>PNG, JPG, WEBP supported</div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              style={{ display: 'none' }}
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f) }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Divider */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ flex: 1, height: 1, background: '#1E2535' }} />
-        <span style={{ fontSize: 11, color: '#334155', fontWeight: 500 }}>OR</span>
-        <div style={{ flex: 1, height: 1, background: '#1E2535' }} />
-      </div>
-
-      {/* Section 2: Mermaid editor */}
-      <div>
-        <div style={{ fontSize: 11, color: '#64748B', marginBottom: 8, fontWeight: 500 }}>
-          OPTION B — Mermaid syntax <span style={{ color: '#334155' }}>(live preview below)</span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {/* Editor */}
-          <textarea
-            value={mermaidCode}
-            onChange={e => setMermaidCode(e.target.value)}
-            placeholder={DEFAULT_MERMAID}
-            spellCheck={false}
+            Clear
+          </button>
+          <button
+            onClick={handleExportPNG}
+            disabled={!hasDrawing || loading}
             style={{
-              width: '100%', minHeight: 200, background: '#1E1E1E', color: '#D4D4D4',
-              border: '1px solid #2D3748', borderRadius: 8, padding: '10px 12px',
-              fontFamily: 'monospace', fontSize: 12, lineHeight: 1.6, resize: 'vertical',
-              boxSizing: 'border-box', outline: 'none',
+              padding: '5px 14px', background: 'transparent', color: '#64748B',
+              border: '1px solid #2D3748', borderRadius: 6, fontSize: 11,
+              fontWeight: 500, cursor: hasDrawing && !loading ? 'pointer' : 'not-allowed',
+              opacity: hasDrawing && !loading ? 1 : 0.4,
             }}
-          />
-
-          {/* Preview pane */}
-          <div style={{
-            minHeight: 200, background: '#0D1117', border: '1px solid #2D3748', borderRadius: 8,
-            padding: '10px 12px', overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            {mermaidSvg ? (
-              <div dangerouslySetInnerHTML={{ __html: mermaidSvg }} style={{ width: '100%' }} />
-            ) : mermaidError ? (
-              <div style={{ fontSize: 11, color: '#F43F5E', textAlign: 'center', padding: '0 8px' }}>{mermaidError}</div>
-            ) : (
-              <div style={{ fontSize: 11, color: '#334155', textAlign: 'center' }}>
-                {mermaidCode.trim() ? 'Rendering…' : 'Preview will appear here'}
-              </div>
-            )}
-          </div>
+          >
+            Export PNG
+          </button>
+          <button
+            onClick={submit}
+            disabled={!canSubmit}
+            style={{
+              padding: '5px 18px', background: canSubmit ? '#7C3AED' : '#2D1F47',
+              color: canSubmit ? '#fff' : '#5B4A7A', border: 'none', borderRadius: 6,
+              fontSize: 12, fontWeight: 600, cursor: canSubmit ? 'pointer' : 'not-allowed',
+              transition: 'background 0.15s',
+            }}
+          >
+            {loading ? 'Evaluating…' : 'Submit ▶'}
+          </button>
         </div>
       </div>
+
+      {/* Excalidraw canvas */}
+      <div style={{
+        height: 520, borderRadius: 10, overflow: 'hidden',
+        border: '1px solid #2D3748', position: 'relative',
+      }}>
+        <ExcalidrawCanvas
+          excalidrawAPI={(api: any) => { excalidrawAPI.current = api }}
+          theme="dark"
+          initialData={{
+            appState: {
+              viewBackgroundColor: '#1A1B26',
+              theme: 'dark',
+              currentItemFontFamily: 1,
+            },
+          }}
+          onChange={(elements: readonly any[]) => {
+            setHasDrawing(elements.some(el => !el.isDeleted))
+          }}
+          UIOptions={{
+            canvasActions: {
+              changeViewBackgroundColor: false,
+              toggleTheme: false,
+              saveAsImage: false,
+              saveToActiveFile: false,
+              loadScene: false,
+              export: false,
+            },
+          }}
+        />
+      </div>
+
+      {/* OR divider */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+        <div style={{ flex: 1, height: 1, background: '#1E2535' }} />
+        <span style={{ fontSize: 10, color: '#334155', fontWeight: 600, letterSpacing: '0.06em' }}>OR UPLOAD</span>
+        <div style={{ flex: 1, height: 1, background: '#1E2535' }} />
+      </div>
+
+      {/* Upload area */}
+      {imagePreview ? (
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imagePreview}
+            alt="uploaded diagram"
+            style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, border: '1px solid #2D3748', display: 'block' }}
+          />
+          <button
+            onClick={() => { setUploadedFile(null); setImagePreview(null) }}
+            style={{
+              position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.75)',
+              color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24,
+              fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >✕</button>
+        </div>
+      ) : uploadedFile ? (
+        <div style={{
+          background: '#0D1117', border: '1px solid #2D3748', borderRadius: 8,
+          padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ fontSize: 12, color: '#94A3B8' }}>📄 {uploadedFile.name}</div>
+          <button
+            onClick={() => { setUploadedFile(null); setImagePreview(null) }}
+            style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 13 }}
+          >✕</button>
+        </div>
+      ) : (
+        <div
+          onDragOver={e => { e.preventDefault(); setDragging(true) }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={e => {
+            e.preventDefault(); setDragging(false)
+            const f = e.dataTransfer.files[0]
+            if (f) handleImageFile(f)
+          }}
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            border: `2px dashed ${dragging ? '#7C3AED' : '#2D3748'}`,
+            borderRadius: 10, padding: '22px 20px', textAlign: 'center',
+            background: dragging ? 'rgba(124,58,237,0.06)' : 'transparent',
+            cursor: 'pointer', transition: 'border-color 0.15s, background 0.15s',
+          }}
+        >
+          <div style={{ fontSize: 11, color: '#4A5568', lineHeight: 1.6 }}>
+            Upload a diagram you made elsewhere{' '}
+            <span style={{ color: '#334155' }}>(draw.io, Lucidchart, PowerPoint, photo of whiteboard)</span>
+          </div>
+          <div style={{ fontSize: 11, color: '#7C3AED', marginTop: 6 }}>Browse files</div>
+          <div style={{ fontSize: 10, color: '#2D3748', marginTop: 4 }}>PNG, JPG, PDF</div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,application/pdf"
+            style={{ display: 'none' }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f) }}
+          />
+        </div>
+      )}
 
       {/* Result */}
       {result && (
-        <div style={{ background: result.error ? '#1A0A0A' : '#0A1A0F', border: `1px solid ${result.error ? '#7F1D1D' : '#14532D'}`, borderRadius: 8, padding: '14px 16px' }}>
+        <div style={{
+          background: result.error ? '#1A0A0A' : '#0A1A0F',
+          border: `1px solid ${result.error ? '#7F1D1D' : '#14532D'}`,
+          borderRadius: 8, padding: '14px 16px',
+        }}>
           {result.error ? (
             <div style={{ fontSize: 13, color: '#F87171' }}>{result.error}</div>
           ) : (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: result.score >= 75 ? '#4ADE80' : result.score >= 55 ? '#FBBF24' : '#F87171' }}>
+                <span style={{
+                  fontSize: 13, fontWeight: 600,
+                  color: result.score >= 75 ? '#4ADE80' : result.score >= 55 ? '#FBBF24' : '#F87171',
+                }}>
                   Score: {result.score}/100 · {result.grade}
                 </span>
                 <span style={{ fontSize: 11, color: '#4A5568' }}>+{result.xp_earned ?? 0} XP</span>
               </div>
-              <div style={{ fontSize: 12, color: '#94A3B8', marginBottom: 6, lineHeight: 1.5 }}>{result.summary}</div>
-              {result.feedback && <div style={{ fontSize: 12, color: '#64748B', fontStyle: 'italic' }}>{result.feedback}</div>}
+              <div style={{ fontSize: 12, color: '#94A3B8', marginBottom: 6, lineHeight: 1.6 }}>{result.summary}</div>
+              {result.issues?.length > 0 && (
+                <div style={{ fontSize: 11, color: '#F87171', marginBottom: 4 }}>
+                  {result.issues.map((i: string, idx: number) => <div key={idx}>• {i}</div>)}
+                </div>
+              )}
+              {result.feedback && (
+                <div style={{ fontSize: 12, color: '#64748B', fontStyle: 'italic', marginTop: 4 }}>{result.feedback}</div>
+              )}
             </>
           )}
         </div>
