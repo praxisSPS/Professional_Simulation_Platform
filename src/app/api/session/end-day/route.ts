@@ -29,6 +29,22 @@ export async function POST(req: NextRequest) {
     .eq('status', 'completed')
 
   const tasks = completedTasks ?? []
+
+  if (tasks.length < 2) {
+    return NextResponse.json(
+      { error: 'Complete at least 2 tasks before ending the day.' },
+      { status: 400 }
+    )
+  }
+
+  // Mark pending tasks as carry_forward before closing the session
+  await adminSupabase
+    .from('tasks')
+    .update({ carry_forward: true })
+    .eq('session_id', session.id)
+    .eq('user_id', user.id)
+    .is('completed_at', null)
+
   const xpEarned = tasks.reduce((sum, t) => sum + (t.xp_earned ?? 0), 0)
   const avgScore = tasks.length
     ? Math.round(tasks.reduce((sum, t) => sum + (t.score ?? 0), 0) / tasks.length)

@@ -31,6 +31,7 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
   const [sessionId, setSessionId] = useState<string | null>(activeSession?.id ?? null)
   const [clockInTime, setClockInTime] = useState<string | null>(activeSession?.clock_in_time ?? null)
   const [daySummary, setDaySummary] = useState<DaySummary | null>(null)
+  const [showEndDayConfirm, setShowEndDayConfirm] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -80,7 +81,12 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
     setLoading(true)
     try {
       const res = await fetch('/api/session/end-day', { method: 'POST' })
-      if (!res.ok) throw new Error('End day failed')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        ;(window as any).espToast?.(err.error ?? 'Failed to end day. Try again.', 'error')
+        setLoading(false)
+        return
+      }
       const summary: DaySummary = await res.json()
       setDaySummary(summary)
       setClockedIn(false)
@@ -96,10 +102,36 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
     if (!t.completed_at) return false
     return new Date(t.completed_at).toDateString() === new Date().toDateString()
   })
-  const showEndDayButton = clockedIn && pendingTasks.length === 0 && completedToday.length > 0
+  const showEndDayButton = clockedIn && pendingTasks.length === 0 && completedToday.length >= 2
 
   return (
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+      {/* End day confirmation modal */}
+      {showEndDayConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '28px', maxWidth: 400, width: '100%' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}>End your simulation day?</div>
+            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 24, lineHeight: 1.6 }}>
+              You have completed {completedToday.length} task{completedToday.length !== 1 ? 's' : ''} today. Once you end the day, you cannot add more completions to today's record.
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setShowEndDayConfirm(false)}
+                style={{ flex: 1, padding: '10px', background: '#F1F5F9', color: '#64748B', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowEndDayConfirm(false); endDay() }}
+                style={{ flex: 1, padding: '10px', background: '#1F4E79', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+              >
+                End day →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Day summary modal */}
       {daySummary && (
@@ -155,7 +187,7 @@ export default function DashboardHome({ profile, kpi, messages, activeSession, r
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           {showEndDayButton && (
             <button
-              onClick={endDay}
+              onClick={() => setShowEndDayConfirm(true)}
               disabled={loading}
               style={{
                 padding: '7px 18px', border: 'none', borderRadius: 8,

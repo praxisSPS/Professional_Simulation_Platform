@@ -26,10 +26,10 @@ export async function getTasks(
     const mod = await loader()
     const curriculum = mod.CURRICULUM
 
-    const day = Math.min(Math.max(simDay, 1), 10)
+    const day = Math.min(Math.max(simDay, 1), 5)
     const lvl = Math.min(Math.max(level, 1), 7)
 
-    const dayData = curriculum[day] ?? curriculum[1] ?? {}
+    const dayData = curriculum[day] ?? curriculum[5] ?? curriculum[1] ?? {}
     const tasks: CurriculumTask[] = dayData[lvl] ?? dayData[1] ?? []
 
     return tasks

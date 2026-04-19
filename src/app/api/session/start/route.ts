@@ -190,26 +190,53 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error?.message }, { status: 500 })
   }
 
-  // Guard: check if already seeded today
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  console.log(`[session/start] sim_day=${sim_day} career_path=${career_path}`)
 
-  const { count: msgCount } = await adminSupabase
-    .from('messages')
-    .select('*', { count: 'exact', head: true })
+  // Guard: check if already seeded for this sim_day (prevents re-seeding on same-day re-clock-in)
+  const { data: prevSessForDay } = await adminSupabase
+    .from('simulation_sessions')
+    .select('id')
     .eq('user_id', user.id)
-    .eq('sender_persona', 'boss')
-    .gte('created_at', todayStart.toISOString())
+    .eq('sim_day', sim_day)
+    .neq('id', session.id)
 
-  if ((msgCount ?? 0) > 0) {
-    // Already seeded today — re-attach pending tasks to new session
+  const prevIds = (prevSessForDay ?? []).map((s: any) => s.id)
+  let alreadySeeded = false
+  if (prevIds.length > 0) {
+    const { count: bossCount } = await adminSupabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('sender_persona', 'boss')
+      .in('session_id', prevIds)
+    alreadySeeded = (bossCount ?? 0) > 0
+  }
+
+  if (alreadySeeded) {
+    // Same sim_day already seeded — re-attach pending tasks (including carry_forward) to new session
     await adminSupabase
       .from('tasks')
       .update({ session_id: session.id })
       .eq('user_id', user.id)
       .is('completed_at', null)
-
     return NextResponse.json({ session, tasks_seeded: 0, resumed: true })
+  }
+
+  // Re-attach carry_forward tasks from previous session before seeding new ones
+  const { data: carryTasks } = await adminSupabase
+    .from('tasks')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('carry_forward', true)
+    .is('completed_at', null)
+
+  if (carryTasks && carryTasks.length > 0) {
+    await adminSupabase
+      .from('tasks')
+      .update({ session_id: session.id, carry_forward: false })
+      .eq('user_id', user.id)
+      .eq('carry_forward', true)
+      .is('completed_at', null)
   }
 
   // ── Fresh session — seed tasks and messages ──────────────────
