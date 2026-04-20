@@ -364,6 +364,68 @@ Scoring guide:
         decisions_good: goodDecisions,
       })
     }
+
+    // Coaching message + mandatory redo for scores below 50
+    if (parsed.score < 50 && activeSession && task) {
+      void (async () => {
+        try {
+          const coachingPrompt = `You are a supportive but honest manager in a professional workplace simulation.
+A junior ${career_path?.replace(/_/g, ' ') ?? 'professional'} just completed a task and scored ${parsed.score}/100.
+
+Task: "${(task as any).title}"
+Task description: "${(task as any).description ?? ''}"
+What they submitted received this feedback: "${parsed.manager_comment ?? ''}"
+Main issues: ${(parsed.improvements ?? []).join('; ')}
+
+Write a short coaching message (3-5 sentences) that:
+1. Acknowledges the attempt without being condescending
+2. Identifies the single most important gap specifically
+3. Gives one concrete tip for what to do differently
+4. Ends with an encouraging tone — they will get a chance to redo this task
+
+Write in first person as their manager. Be direct and specific. No bullet points. No preamble.`
+
+          const coachResult = await model.generateContent(coachingPrompt)
+          const coachingBody = coachResult.response.text().trim()
+
+          await adminSupabase.from('messages').insert({
+            session_id: activeSession.id,
+            user_id: user.id,
+            sender_persona: 'manager_james',
+            sender_name: 'James',
+            sender_role: 'Your Manager',
+            subject: `Let's talk about: ${(task as any).title}`,
+            body: coachingBody,
+            urgency: 'high',
+            requires_response: false,
+            trigger_type: 'coaching',
+            message_type: 'coaching',
+            feedback_for_task_id: task_id,
+            is_read: false,
+          })
+
+          // Create redo task
+          const now = new Date()
+          await adminSupabase.from('tasks').insert({
+            user_id: user.id,
+            session_id: activeSession.id,
+            title: `REDO: ${(task as any).title}`,
+            type: (task as any).type,
+            description: (task as any).description,
+            urgency: 'urgent',
+            xp_reward: Math.round(((task as any).xp_reward ?? 30) * 0.5),
+            status: 'pending',
+            assigned_at: now.toISOString(),
+            due_at: new Date(now.getTime() + 60 * 60000).toISOString(),
+            project_ref: (task as any).project_ref ?? null,
+            kpi_tag: (task as any).kpi_tag ?? null,
+            is_redo: true,
+          })
+        } catch (e) {
+          console.error('Coaching/redo insert error:', e)
+        }
+      })()
+    }
   }
 
   return NextResponse.json({ ...parsed, xp_earned: xpEarned })

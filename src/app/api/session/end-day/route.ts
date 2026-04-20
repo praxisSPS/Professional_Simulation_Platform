@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   todayStart.setUTCHours(0, 0, 0, 0)
   const todayStartISO = todayStart.toISOString()
 
-  const [{ count: assignedTodayCount }, { data: completedTasks }] = await Promise.all([
+  const [{ count: assignedTodayCount }, { data: completedTasks }, { data: redoTasks }] = await Promise.all([
     adminSupabase
       .from('tasks')
       .select('*', { count: 'exact', head: true })
@@ -37,6 +37,12 @@ export async function POST(req: NextRequest) {
       .eq('user_id', user.id)
       .eq('status', 'completed')
       .gte('completed_at', todayStartISO),
+    adminSupabase
+      .from('tasks')
+      .select('id, title')
+      .eq('user_id', user.id)
+      .eq('is_redo', true)
+      .eq('status', 'pending'),
   ])
 
   const tasks = completedTasks ?? []
@@ -47,6 +53,15 @@ export async function POST(req: NextRequest) {
     const pct = Math.round((tasks.length / assignedToday) * 100)
     return NextResponse.json(
       { error: `Complete at least 40% of today's tasks before ending the day. You've completed ${tasks.length} of ${assignedToday} (${pct}%).` },
+      { status: 400 }
+    )
+  }
+
+  // Block end-day if any redo tasks are still incomplete
+  if (redoTasks && redoTasks.length > 0) {
+    const redoTitles = redoTasks.map((t: any) => t.title.replace(/^REDO: /, '')).join(', ')
+    return NextResponse.json(
+      { error: `You must complete your redo task${redoTasks.length !== 1 ? 's' : ''} before ending the day: ${redoTitles}` },
       { status: 400 }
     )
   }
