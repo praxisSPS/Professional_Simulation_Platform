@@ -11,6 +11,49 @@ import mammoth from 'mammoth'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
+const TOOL_KEYWORDS: Record<string, string[]> = {
+  sql:       ['sql', 'query', 'data', 'table', 'pipeline', 'schema', 'transform', 'etl', 'database'],
+  python:    ['python', 'script', 'pipeline', 'etl', 'clean', 'process', 'analyse', 'automat'],
+  arch:      ['architecture', 'diagram', 'design', 'system', 'flow', 'component', 'infrastructure'],
+  dq:        ['quality', 'validation', 'anomaly', 'null', 'duplicate', 'check', 'sla', 'data quality'],
+  rca:       ['root cause', 'rca', 'failure', 'bearing', 'fault', 'breakdown', 'incident'],
+  fmea:      ['fmea', 'failure mode', 'risk priority', 'rpn', 'criticality'],
+  sop:       ['procedure', 'sop', 'shutdown', 'startup', 'loto', 'permit', 'protocol'],
+  cmms:      ['work order', 'maintenance log', 'cmms', 'repair', 'overhaul'],
+  shift:     ['shift', 'handover', 'status', 'end of shift', 'start of shift'],
+  raid:      ['raid', 'risk', 'assumption', 'issue', 'dependency', 'register', 'mitigation'],
+  gantt:     ['timeline', 'gantt', 'schedule', 'critical path', 'milestone', 'wbs'],
+  status:    ['status report', 'rag', 'board', 'progress report', 'weekly report'],
+  comms:     ['stakeholder', 'communication', 'email', 'meeting', 'call', 'brief', 'announcement'],
+  change:    ['change request', 'scope change', 'variation order', 'impact assessment', 'change control'],
+  story:     ['user story', 'acceptance criteria', 'sprint backlog', 'feature'],
+  roadmap:   ['roadmap', 'q1', 'q2', 'quarter', 'priorities', 'planning'],
+  prd:       ['prd', 'product requirement', 'brief', 'specification', 'ux brief'],
+  model:     ['model', 'spreadsheet', 'financial model', 'budget', 'forecast', 'scenario'],
+  variance:  ['variance', 'actual vs', 'budget vs', 'driver', 'commentary'],
+  scenario:  ['scenario', 'base case', 'upside', 'downside', 'sensitivity', 'npv'],
+  deck:      ['board presentation', 'investor', 'narrative', 'slide', 'presentation'],
+  dashboard: ['campaign', 'performance', 'roas', 'ctr', 'cpc', 'review', 'analysis'],
+  copy:      ['copy', 'email', 'subject line', 'ad copy', 'message', 'content'],
+  abtest:    ['a/b test', 'hypothesis', 'variant', 'experiment', 'split test'],
+  builder:   ['campaign builder', 'launch', 'plan', 'strategy'],
+  analytics: ['attribution', 'conversion', 'metric', 'insight', 'data'],
+}
+
+function assessToolChoice(toolUsed: string, taskTitle: string, taskDesc: string): { correct: boolean; delta: number; note: string } {
+  const text = `${taskTitle} ${taskDesc}`.toLowerCase()
+  const keywords = TOOL_KEYWORDS[toolUsed] ?? []
+  const matches = keywords.filter(kw => text.includes(kw)).length
+  const isCorrect = matches >= 1
+  return {
+    correct: isCorrect,
+    delta: isCorrect ? 10 : -15,
+    note: isCorrect
+      ? `Good tool choice: ${toolUsed} is appropriate for this task.`
+      : `Tool choice: ${toolUsed} may not be the best fit for this task.`,
+  }
+}
+
 async function triggerColleagueMessage(
   adminSupabase: any,
   userId: string,
@@ -95,7 +138,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   const body = await req.json()
-  const { task_id, rubric, career_path, task_type, task_description, submission_url, submission_file, submission_file_name, submission_file_mime } = body
+  const { task_id, rubric, career_path, task_type, task_description, submission_url, submission_file, submission_file_name, submission_file_mime, tool_used } = body
   let response: string = body.response ?? ''
 
   // Extract content from URL submission
@@ -205,6 +248,17 @@ Scoring guide:
     }
   }
 
+  // Apply tool choice delta
+  if (tool_used && (task_description || task_type)) {
+    const toolAssessment = assessToolChoice(tool_used, task_type ?? '', task_description ?? '')
+    parsed.score = Math.max(0, Math.min(100, parsed.score + toolAssessment.delta))
+    if (toolAssessment.correct) {
+      parsed.strengths = [...(parsed.strengths ?? []), toolAssessment.note]
+    } else {
+      parsed.improvements = [...(parsed.improvements ?? []), toolAssessment.note]
+    }
+  }
+
   const quality = parsed.score >= 75 ? 'good' : parsed.score >= 55 ? 'medium' : 'bad'
   const xpEarned = task_id ? Math.round(40 * (parsed.score / 100)) : 0
 
@@ -221,6 +275,7 @@ Scoring guide:
         xp_earned: xpEarned,
         submission_type: submission_url ? 'link' : submission_file ? 'file' : 'native',
         submission_url: submission_url ?? null,
+        tool_used: tool_used ?? null,
       })
       .eq('id', task_id)
       .eq('user_id', user.id)
