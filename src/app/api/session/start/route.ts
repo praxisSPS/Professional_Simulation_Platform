@@ -155,6 +155,8 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
+  await adminSupabase.from('profiles').update({ last_login_at: new Date().toISOString() }).eq('id', user.id)
+
   const { career_path } = await req.json()
 
   // Read sim_day from profile
